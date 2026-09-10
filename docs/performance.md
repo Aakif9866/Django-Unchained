@@ -1,10 +1,33 @@
 # Performance Testing Log
 
-Filled in during Phase 2.4–2.8. Every claim about capacity must be backed by
-a measurement recorded here — no "it should handle X users" without a test
-run to prove it.
+## 2026-09-11 — Locust + k6, 10/50/100 concurrent users (see `phase-2-results/PERFORMANCE/results.md`)
 
-For each test run:
+Full test configuration, per-stage metrics (p50/p95, req/s, error rate),
+and raw CSV/JSON evidence live in `phase-2-results/PERFORMANCE/results.md`
+and `phase-2-results/RAW_RESULTS/`; not duplicated here.
+
+**Headline result:** zero failed requests at every stage tested (10, 50,
+100 concurrent users) — the app degrades gracefully rather than
+crashing. **Bottleneck found and root-caused:** authentication endpoints
+(register/login) scale non-linearly under concurrency (2.9s → 6.1s avg,
+10→100 users) while notes CRUD stays flat (~850ms throughout) — caused by
+CPU-bound PBKDF2 password hashing serializing under Python's GIL on
+Django's single-process dev server. Notes queries are I/O-bound (waiting
+on the network round-trip to Neon) and don't hit this limit.
+
+**Not yet answered:** whether this bottleneck persists behind a real
+production WSGI server (Gunicorn, multiple worker processes) — that's
+Phase 3 work, once the app is containerized. Testing further with the
+dev server now would measure the dev server's known limits, not the
+app's real capacity — see `phase-2-results/DEFERRED_TESTS.md`.
+
+**10,000 registered users ≠ 10,000 concurrent users, still true:**
+everything above tested concurrent load, not total accounts — no claim
+here about how many total users this app "supports."
+
+---
+
+## Template for future entries
 
 ```
 ### Test:
@@ -19,7 +42,3 @@ Bottleneck identified:
 Change made:
 Retest result:
 ```
-
----
-
-<!-- Runs go below, most recent first -->

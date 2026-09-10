@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 
@@ -113,6 +114,12 @@ export function Notes() {
               <span className="note-list-date">{formatDate(note.updated_at)}</span>
             </button>
           ))}
+        </div>
+
+        <div className="sidebar-nav">
+          <Link to="/testing-dashboard" className="sidebar-nav-link">
+            Phase 2 Testing Dashboard
+          </Link>
         </div>
 
         <div className="sidebar-footer">

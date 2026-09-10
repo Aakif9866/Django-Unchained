@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Notes } from './pages/Notes';
+import { Phase2Dashboard } from './pages/Phase2Dashboard';
 
 export default function App() {
   return (
@@ -17,6 +18,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Notes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/testing-dashboard"
+            element={
+              <ProtectedRoute>
+                <Phase2Dashboard />
               </ProtectedRoute>
             }
           />

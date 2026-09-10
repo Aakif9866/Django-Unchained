@@ -79,17 +79,30 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done & verified
 
 ## Phase 2 — Security + Performance Engineering
 
+> **2026-09-11 — Scoped speedrun exception** (see `docs/decisions.md`
+> conversation context and `phase-2-results/README.md`): at the user's
+> explicit request, Claude executed most of Phase 2 autonomously —
+> automated tests, scripted security probing, Locust/k6 load testing,
+> reliability checks, and a results dashboard. Two things were
+> deliberately kept out and remain the user's own work: **manual Burp
+> Suite exploration** (a GUI tool Claude cannot drive — this is not
+> optional, it's the one piece of Phase 2 that can't be automated around)
+> and **Docker/DevOps**, which stayed in Phase 3 as originally planned.
+> Everything below is `[~]`, not `[x]`, for the same reason as Phase 1's
+> speedrun — code and results exist and are verified, but the user
+> hasn't personally worked through them yet.
+
 - [ ] HTTP fundamentals understood
-- [ ] Burp Suite proxy set up against local app
-- [ ] Auth/authorization tested (IDOR check on notes)
-- [ ] CSRF/CORS/security headers tested
-- [ ] Vulnerabilities found, fixed, retested, documented
-- [ ] Automated test suite written (auth + CRUD + authorization)
-- [ ] Performance fundamentals understood (throughput, p50/p95/p99, etc.)
-- [ ] Locust tests: 10 → 50 → 100 → 500 → 1,000+ users, analyzed
-- [ ] k6 tests written and compared to Locust
-- [ ] JMeter used (if it adds learning value) and compared
-- [ ] Bottlenecks found and documented in docs/performance.md
+- [ ] **Burp Suite proxy set up against local app — still genuinely outstanding, not automatable**
+- [~] Auth/authorization tested (IDOR check on notes) — exhaustively covered by automated tests (`phase-2-results/TEST_MATRIX.md`, tests Z-01–Z-05), not yet by the user's own Burp exploration
+- [~] CSRF/CORS/security headers tested — scripted probe done (`phase-2-results/SECURITY/findings.md`); 2 open findings (no rate limiting, DEBUG=True)
+- [~] Vulnerabilities found, documented — found and documented; **not yet fixed** (see findings list); retest pending the fix
+- [~] Automated test suite written — 19 tests, all passing, but written by Claude, not the user (spec said "write as much yourself as practical")
+- [ ] Performance fundamentals understood (throughput, p50/p95/p99, etc.) — results exist, concepts not yet explained/taught
+- [~] Locust tests: 10 → 50 → 100 done and analyzed; 500/1,000+ deferred (see `phase-2-results/DEFERRED_TESTS.md` — needs a production WSGI server first, not the dev server)
+- [~] k6 tests written and compared to Locust
+- [x] JMeter — deliberately not used; Locust+k6 already met the comparison goal (see DEFERRED_TESTS.md)
+- [~] Bottlenecks found and documented — real one found (auth latency under concurrency), root-caused, in `docs/performance.md`
 
 ## Phase 3 — DevOps / Production Engineering
 

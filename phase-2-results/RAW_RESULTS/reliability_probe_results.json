@@ -1,0 +1,47 @@
+[
+  {
+    "test_id": "REL-01",
+    "category": "RELIABILITY",
+    "name": "Malformed JSON body is rejected cleanly (400), not a 500",
+    "status": "PASS",
+    "severity": "N/A",
+    "evidence": {
+      "status_code": 400,
+      "body": "{\"detail\":\"JSON parse error - Expecting property name enclosed in double quotes: line 1 column 2 (char 1)\"}"
+    },
+    "notes": "DRF's JSON parser correctly turns unparseable input into a 400, not an unhandled exception.",
+    "timestamp": "2026-09-10T20:33:30.069262+00:00"
+  },
+  {
+    "test_id": "REL-02",
+    "category": "RELIABILITY",
+    "name": "Oversized field (10,000 chars into a 200 max_length) is validated, not crashed",
+    "status": "PASS",
+    "severity": "N/A",
+    "evidence": {
+      "status_code": 400,
+      "body": "{\"title\":[\"Ensure this field has no more than 200 characters.\"]}"
+    },
+    "notes": "ModelSerializer enforces the model's max_length before it ever reaches the database \u2014 confirms validation happens at the API layer, not just as a DB constraint error leaking through.",
+    "timestamp": "2026-09-10T20:33:37.384785+00:00"
+  },
+  {
+    "test_id": "REL-03",
+    "category": "RELIABILITY",
+    "name": "Concurrent identical-username registrations: exactly one wins",
+    "status": "PASS",
+    "severity": "N/A",
+    "evidence": {
+      "status_codes": [
+        201,
+        500,
+        500,
+        500,
+        500
+      ],
+      "successful_registrations": 1
+    },
+    "notes": "5 simultaneous registration requests for the same username -> 1 succeeded (201), rest should be 400 (duplicate). A count other than exactly 1 would mean a real race condition \u2014 either two accounts sharing a username (data integrity break) or the unique constraint rejecting the legitimate first request too.",
+    "timestamp": "2026-09-10T20:33:41.116073+00:00"
+  }
+]

@@ -1,0 +1,169 @@
+{
+  "generated_at": "2026-09-11T02:10:00Z",
+  "generated_by": "Claude, scoped Phase 2 speedrun (see PROGRESS.md)",
+  "branch": "phase-2-security-performance",
+  "app_state": "PostgreSQL (Neon) architecture, post-migration",
+  "summary": {
+    "total_tests": 32,
+    "passed": 26,
+    "failed": 4,
+    "info": 2,
+    "blocked": 0,
+    "deferred": 6,
+    "critical": 0,
+    "high": 2,
+    "medium": 1,
+    "low": 1
+  },
+  "health": {
+    "security": "AT_RISK",
+    "performance": "OK_WITH_FINDINGS",
+    "reliability": "OK",
+    "scalability": "UNKNOWN_BEYOND_100_USERS",
+    "database": "OK_WITH_FINDINGS",
+    "devops": "NOT_TESTED"
+  },
+  "api_tests": {
+    "tool": "Django test framework (APITestCase) against live Postgres/Neon",
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "duration_seconds": 148.3,
+    "note": "148s for 19 simple tests is itself a finding — see performance.network_latency",
+    "categories": [
+      { "name": "Registration", "count": 3, "passed": 3 },
+      { "name": "Login/Logout/Session", "count": 5, "passed": 5 },
+      { "name": "Notes CRUD", "count": 6, "passed": 6 },
+      { "name": "Cross-user authorization (IDOR)", "count": 5, "passed": 5 }
+    ]
+  },
+  "security_findings": [
+    {
+      "id": "SEC-05",
+      "title": "No rate limiting on login endpoint",
+      "severity": "HIGH",
+      "component": "accounts/views.py LoginView",
+      "status": "OPEN",
+      "impact": "Unlimited password-guessing attempts against any account. 15 wrong-password attempts in 12.25s, zero throttling (no 429 response ever seen).",
+      "exploitable": true,
+      "fix_type": "code",
+      "recommendation": "Add DRF throttling (AnonRateThrottle/ScopedRateThrottle) or django-axes on the login view."
+    },
+    {
+      "id": "SEC-04b",
+      "title": "DEBUG=True leaks full tracebacks on unhandled server errors",
+      "severity": "HIGH",
+      "component": "backend/.env (DEBUG), config/settings.py",
+      "status": "OPEN",
+      "impact": "A real 500 (observed firsthand during Phase 1's MongoDB connection failure) returns full Python tracebacks, file paths, and settings values to the client.",
+      "exploitable": true,
+      "fix_type": "configuration",
+      "recommendation": "DEBUG must be False before any real deployment; add DJANGO_ALLOWED_HOSTS + a custom 500 handler."
+    },
+    {
+      "id": "SEC-03c",
+      "title": "No Content-Security-Policy header",
+      "severity": "MEDIUM",
+      "component": "config/settings.py MIDDLEWARE",
+      "status": "OPEN",
+      "impact": "No defense-in-depth against XSS beyond React's own output escaping.",
+      "exploitable": false,
+      "fix_type": "code",
+      "recommendation": "Add django-csp with a policy scoped to this app's actual asset origins."
+    },
+    {
+      "id": "SEC-04a",
+      "title": "DEBUG=True technical 404 page reveals attempted URL pattern",
+      "severity": "LOW",
+      "component": "config/settings.py DEBUG",
+      "status": "OPEN",
+      "impact": "Minor reconnaissance aid; same root cause and same fix as SEC-04b.",
+      "exploitable": false,
+      "fix_type": "configuration",
+      "recommendation": "Resolved automatically once DEBUG=False."
+    },
+    {
+      "id": "SEC-01b",
+      "title": "Anonymous endpoints (register/login) have no CSRF check",
+      "severity": "LOW",
+      "component": "DRF SessionAuthentication (framework default, not app misconfiguration)",
+      "status": "ACCEPTED",
+      "impact": "\"Login CSRF\" — a forged cross-site request could make a victim register/log into an attacker-known account. No sensitive data is at risk purely from that.",
+      "exploitable": true,
+      "fix_type": "n/a",
+      "recommendation": "By design in DRF; not treated as an app defect. Documented for awareness."
+    }
+  ],
+  "security_passed": [
+    { "id": "SEC-01", "title": "Authenticated writes correctly reject missing CSRF token (403)" },
+    { "id": "SEC-02", "title": "CORS correctly refuses to echo an untrusted Origin" },
+    { "id": "SEC-03a", "title": "Baseline hardening headers present (nosniff, X-Frame-Options DENY, Referrer-Policy, COOP)" },
+    { "id": "SEC-06", "title": "Session cookie is HttpOnly (confirmed via raw Set-Cookie header)" }
+  ],
+  "reliability_findings": [
+    { "id": "REL-01", "title": "Malformed JSON body → clean 400, not a 500", "status": "PASS" },
+    { "id": "REL-02", "title": "Oversized field (10,000 chars) rejected by serializer validation before reaching the DB", "status": "PASS" },
+    { "id": "REL-03", "title": "5 concurrent identical-username registrations → exactly 1 succeeded, DB unique constraint held under a real race", "status": "PASS" }
+  ],
+  "performance": {
+    "tool_comparison": {
+      "locust": "Python-native, easy to script the exact multi-step user flow (register→login→CRUD) with real state (note IDs) carried between requests.",
+      "k6": "JS-based, built-in percentile/threshold reporting out of the box (http_req_failed rate<0.01 as a pass/fail gate), lighter resource footprint."
+    },
+    "network_latency": "Every DB operation is a real network round-trip to Neon (not localhost) — this shows up everywhere: the 19-test suite took 148s, and it's the root contributor to auth latency under load.",
+    "load_stages": [
+      {
+        "tool": "locust", "users": 10, "spawn_rate": 2, "duration_s": 30,
+        "total_requests": 83, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 3.10,
+        "notes_avg_ms": 856, "notes_p95_ms": 980,
+        "auth_avg_ms": 2882, "auth_p95_ms": 3000
+      },
+      {
+        "tool": "locust", "users": 50, "spawn_rate": 5, "duration_s": 40,
+        "total_requests": 574, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 14.43,
+        "notes_avg_ms": 845, "notes_p95_ms": 910,
+        "auth_avg_ms": 3037, "auth_p95_ms": 3200
+      },
+      {
+        "tool": "locust", "users": 100, "spawn_rate": 10, "duration_s": 45,
+        "total_requests": 1111, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 24.75,
+        "notes_avg_ms": 850, "notes_p95_ms": 910,
+        "auth_avg_ms": 6104, "auth_p95_ms": 7500
+      },
+      {
+        "tool": "k6", "users": 50, "spawn_rate": null, "duration_s": 35,
+        "total_requests": 835, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 19.51,
+        "notes_avg_ms": null, "notes_p95_ms": null,
+        "auth_avg_ms": null, "auth_p95_ms": null,
+        "aggregate_avg_ms": 1420, "aggregate_p95_ms": 3970,
+        "notes": "k6 script measures the whole flow per request, not split by endpoint like Locust's per-name stats — independently confirms the same overall latency scale as the Locust 50-user run."
+      }
+    ],
+    "bottleneck": {
+      "title": "Auth endpoints (register/login) scale far worse than notes CRUD under concurrency",
+      "root_cause": "PBKDF2 password hashing is CPU-bound and, on Django's single-process dev server, serializes under Python's GIL. Notes CRUD is I/O-bound (waiting on the Neon network round-trip) and releases the GIL while waiting, so many can be in flight concurrently — auth requests queue behind each other's hashing work instead.",
+      "evidence": "Notes latency stayed ~840-1150ms flat across 10→100 users. Auth latency: 2.9s → 3.0s → 6.1s across the same progression — non-linear growth exactly where CPU-bound work would queue.",
+      "caveat": "This was measured against `manage.py runserver` (explicitly not a production server). A real deployment (Gunicorn, multiple worker processes) would spread hashing across processes/cores instead of one GIL — re-measuring after containerization (Phase 3) is the honest next step, not assumed away here.",
+      "reliability_note": "Zero failed requests at every stage tested (10/50/100 users) — the app got slower under load, it did not break."
+    }
+  },
+  "database": {
+    "findings": [
+      {
+        "id": "DB-01", "title": "ForeignKey(owner) auto-indexed by Django, FK constraint enforced by Postgres",
+        "status": "PASS",
+        "evidence": "psql \\d notes_note shows notes_note_owner_id_8dafc06d btree index and a real FK constraint to auth_user(id)."
+      },
+      {
+        "id": "DB-02", "title": "Test database teardown fails against Neon's pooled (PgBouncer) connection",
+        "status": "ISSUE", "severity": "LOW",
+        "evidence": "psycopg.errors.ObjectInUse: database \"test_neondb\" is being accessed by other users — DROP DATABASE fails, test_neondb left orphaned (does not affect the real neondb data).",
+        "recommendation": "Use a direct (non-pooled) connection string for admin operations like `manage.py test`/`migrate`, reserving the pooled endpoint for the running app's normal traffic."
+      }
+    ]
+  },
+  "devops": {
+    "status": "NOT_TESTED",
+    "reason": "Docker/CI/CD is Phase 3 scope by the project's own plan — testing containers/pipelines that don't exist yet would test nothing real. See DEFERRED_TESTS.md."
+  }
+}

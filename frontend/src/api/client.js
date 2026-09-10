@@ -68,4 +68,6 @@ export const api = {
   createNote: (note) => request('/api/notes/', { method: 'POST', body: note }),
   updateNote: (id, note) => request(`/api/notes/${id}/`, { method: 'PATCH', body: note }),
   deleteNote: (id) => request(`/api/notes/${id}/`, { method: 'DELETE' }),
+
+  getPhase2Dashboard: () => request('/api/dashboard/phase2/'),
 };
