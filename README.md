@@ -1,78 +1,423 @@
 # Django Unchained — Full-Stack Engineering Lab
 
-A learning project: a small authenticated Notes application, built end to
-end — application code, security testing, performance testing, and DevOps —
-by a human learner using Claude Code as a mentor, not a code generator.
+**Django Unchained** is a small full-stack Notes application built as a hands-on engineering lab.
 
-See `CLAUDE.md` for the ground rules this project is built under, and
-`PROGRESS.md` for what has actually been completed so far.
+It covers the lifecycle of a realistic web application:
+
+```text
+Build
+  ↓
+Test
+  ↓
+Secure
+  ↓
+Load Test
+  ↓
+Containerize
+  ↓
+Automate
+  ↓
+Deploy
+  ↓
+Monitor
+  ↓
+Learn / Revisit
+```
+
+The project is being built with **React + Django REST Framework + PostgreSQL**, with security, performance, Docker, CI/CD, deployment, and monitoring explored around the application.
+
+> **Important:** This project is both a development project and a learning project. Due to time constraints, some implementation is being completed quickly first. Those concepts are tracked for deeper learning afterward.
+
+See `CLAUDE.md` for the working rules and `PROGRESS.md` for implementation progress.
+
+See `LEARNING.md` for concepts that still need deeper study.
+
+---
 
 ## Project Overview
 
-A Notes app where users can register, log in, and manage their own private
-notes. The point of the project isn't the app itself — it's using a
-realistic, small application as a vehicle to learn:
+The application is a private Notes application where users can:
 
-1. **Build** — React + Django REST Framework + PostgreSQL (Neon)
-2. **Test** — automated unit/integration/API tests
-3. **Secure** — manual testing with Burp Suite, fixing real vulnerabilities
-4. **Load test** — Locust, k6, JMeter
-5. **Containerize** — Docker, Docker Compose
-6. **Automate** — CI/CD with GitHub Actions
-7. **Deploy** — Nginx reverse proxy, a real deployment target
-8. **Monitor** — logging and monitoring
+- Register
+- Log in
+- Create notes
+- Read their notes
+- Update notes
+- Delete notes
+- Access only their own data
+
+The Notes application itself is intentionally simple.
+
+The real purpose of the project is to use a small but realistic application to explore full-stack engineering.
+
+---
+
+## Engineering Areas
+
+The project covers:
+
+### 1. Application Engineering
+
+- Git
+- React
+- Vite
+- Django
+- Django REST Framework
+- PostgreSQL
+- REST APIs
+- Authentication
+- Authorization
+- CRUD
+- Database modeling
+
+### 2. Automated Testing
+
+- Unit testing
+- Integration testing
+- API testing
+- Authentication testing
+- Authorization testing
+
+### 3. Security Engineering
+
+- HTTP fundamentals
+- Authentication security
+- Authorization
+- IDOR
+- CSRF
+- CORS
+- Security headers
+- Session security
+- Input validation
+- API security
+- Manual testing with Burp Suite
+
+### 4. Performance Engineering
+
+- Baseline performance
+- Load testing
+- Stress testing
+- Concurrency
+- Latency
+- Throughput
+- Error rates
+- Database performance
+
+Tools may include:
+
+- Locust
+- k6
+- JMeter
+
+Some tools may be deferred if their setup is disproportionately large compared with the learning value at the current stage.
+
+### 5. Containerization
+
+- Docker
+- Docker Compose
+- Container networking
+- Environment configuration
+- Health checks
+- Production-style containers
+
+### 6. DevOps
+
+- Git workflows
+- GitHub Actions
+- CI
+- CD
+- Environment management
+- Deployment
+
+### 7. Production Engineering
+
+- Nginx
+- Reverse proxying
+- Logging
+- Monitoring
+- Reliability
+- Failure handling
+
+---
 
 ## Architecture
 
-_To be filled in as it's built and understood — see `docs/architecture.md`
-for the running, detailed version. High level, this is the target:_
+Current target architecture:
 
+```text
+                    ┌─────────────────┐
+                    │      User       │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ React + Vite    │
+                    │   Frontend      │
+                    └────────┬────────┘
+                             │ HTTP
+                             ▼
+                    ┌─────────────────┐
+                    │ Django + DRF    │
+                    │   REST API      │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │   PostgreSQL    │
+                    │      Neon       │
+                    └─────────────────┘
 ```
-User → React (Vite) → REST API → Django + DRF → PostgreSQL (Neon)
+
+Production-oriented architecture will additionally introduce:
+
+```text
+Internet
+   │
+   ▼
+ Nginx
+   │
+   ▼
+ React / Django
+   │
+   ▼
+PostgreSQL
 ```
+
+The detailed architecture is documented in:
+
+`docs/architecture.md`
+
+---
 
 ## Tech Stack
 
-| Layer      | Choice                     |
-|------------|-----------------------------|
-| Frontend   | React + Vite (JavaScript)   |
-| Backend    | Python + Django + DRF       |
-| Database   | PostgreSQL (Neon) — see `docs/decisions.md` for why this replaced an earlier MongoDB + SQLite split |
-| Auth       | Session cookie (HttpOnly) + CSRF, not JWT — see `docs/decisions.md` |
-| Containers | Docker + Docker Compose     |
-| CI/CD      | GitHub Actions              |
-| Proxy      | Nginx                       |
+| Layer             | Technology                       |
+| ----------------- | -------------------------------- |
+| Frontend          | React + Vite                     |
+| Frontend Language | JavaScript                       |
+| Backend           | Python + Django                  |
+| API               | Django REST Framework            |
+| Database          | PostgreSQL                       |
+| Database Hosting  | Neon                             |
+| Authentication    | Session Cookie + HttpOnly + CSRF |
+| Containers        | Docker + Docker Compose          |
+| CI/CD             | GitHub Actions                   |
+| Reverse Proxy     | Nginx                            |
+| Security Testing  | Burp Suite                       |
+| Load Testing      | Locust / k6 / JMeter             |
 
-Reasoning for each choice lives in `docs/decisions.md`.
+Architectural reasoning is documented in:
 
-## Local Setup
+`docs/decisions.md`
 
-_Not written yet — this section fills in as Phase 1 is completed, so it
-always reflects a setup that's actually been verified to work._
+---
 
-## Environment Variables
+## Current Development Philosophy
 
-_Not written yet — filled in during Phase 1.7 (auth) and Phase 3.2 (config
-management). Nothing here should ever include real secret values._
+Originally, the project was intended to follow a strict:
+
+```text
+Learn → Implement → Test
+```
+
+workflow.
+
+Because of development deadlines, the workflow has evolved into:
+
+```text
+Implement → Verify → Document → Learn Deeply Later
+```
+
+This is intentional.
+
+The project therefore distinguishes between:
+
+### Implementation Status
+
+What has actually been built and verified.
+
+### Learning Status
+
+What the developer can currently explain and understand deeply.
+
+A feature can therefore be:
+
+```text
+Implemented: YES
+Verified: YES
+Deeply Understood: NOT YET
+```
+
+That is acceptable.
+
+The goal is to eventually close that learning gap.
+
+---
+
+## Documentation
+
+| File                   | Purpose                              |
+| ---------------------- | ------------------------------------ |
+| `README.md`            | Project overview                     |
+| `CLAUDE.md`            | AI/project working rules             |
+| `PROGRESS.md`          | Implementation progress              |
+| `LEARNING.md`          | Concepts to revisit and learn        |
+| `docs/architecture.md` | System architecture                  |
+| `docs/decisions.md`    | Architectural decisions              |
+| `docs/security.md`     | Security findings                    |
+| `docs/performance.md`  | Performance testing                  |
+| `docs/`                | Additional engineering documentation |
+
+---
 
 ## Testing
 
-_Not written yet — filled in during Phase 2.3._
+Testing is treated as an engineering activity rather than simply checking whether buttons work.
 
-## Docker
+The project explores:
 
-_Not written yet — filled in during Phase 3.4–3.5._
+```text
+Functional correctness
+        ↓
+Security
+        ↓
+Performance
+        ↓
+Scalability
+        ↓
+Reliability
+        ↓
+Failure recovery
+```
 
-## Deployment
+Actual testing results and evidence are stored in the project's testing documentation and result artifacts.
 
-_Not written yet — filled in during Phase 3.6–3.8._
+Tests that cannot reasonably be performed during the current development window are marked as:
 
-## Performance Testing
+```text
+DEFERRED
+```
 
-_Not written yet — filled in during Phase 2.4–2.8, results tracked in
-`docs/performance.md`._
+rather than being falsely presented as completed.
 
-## Security Testing
+---
 
-_Not written yet — filled in during Phase 2.2, findings tracked in
-`docs/security.md`._
+## Security
+
+Security testing focuses on understanding how a real web application can fail.
+
+Areas include:
+
+- Authentication
+- Authorization
+- IDOR
+- CSRF
+- CORS
+- Session management
+- Security headers
+- Input validation
+- API security
+- Information disclosure
+
+Manual testing may be performed using Burp Suite against the authorized development/test environment.
+
+Security findings are documented in:
+
+`docs/security.md`
+
+---
+
+## Performance
+
+Performance testing focuses on understanding how the application behaves as load increases.
+
+The general approach is:
+
+```text
+Baseline
+   ↓
+Normal Load
+   ↓
+Higher Load
+   ↓
+Stress
+   ↓
+Observe Bottleneck
+   ↓
+Optimize
+   ↓
+Retest
+```
+
+Results are documented in:
+
+`docs/performance.md`
+
+---
+
+## Docker & DevOps
+
+The application will eventually be containerized using Docker and Docker Compose.
+
+The DevOps portion explores:
+
+- Reproducible environments
+- Containers
+- Networking
+- Environment variables
+- CI
+- CD
+- Reverse proxies
+- Deployment
+- Logging
+- Monitoring
+
+---
+
+## Learning After Implementation
+
+One of the important goals of this project is to eventually understand **why everything works**, not merely have working code.
+
+Topics that were implemented quickly are tracked in:
+
+`LEARNING.md`
+
+The intended future workflow is:
+
+```text
+Finished Application
+        ↓
+Read Architecture
+        ↓
+Trace Request Flow
+        ↓
+Understand Database Flow
+        ↓
+Understand Authentication
+        ↓
+Understand Security
+        ↓
+Understand Performance
+        ↓
+Understand Docker
+        ↓
+Understand CI/CD
+        ↓
+Understand Deployment
+```
+
+This turns the completed application into a personal full-stack engineering laboratory.
+
+---
+
+## Status
+
+The project is actively being developed.
+
+For the actual implementation status, see:
+
+`PROGRESS.md`
+
+For unresolved learning topics, see:
+
+`LEARNING.md`
