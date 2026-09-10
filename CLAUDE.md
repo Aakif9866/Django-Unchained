@@ -57,8 +57,8 @@ Testing + Monitoring.**
 
 ## Stack (see docs/decisions.md for the "why")
 
-- Frontend: React + Vite
+- Frontend: React + Vite (JavaScript)
 - Backend: Python + Django + Django REST Framework
-- Database: MongoDB
-- Auth: to be decided together in Phase 1.7 (session vs JWT tradeoffs
-  explained before choosing)
+- Database: PostgreSQL (Neon) — originally MongoDB + SQLite; migrated
+  2026-09-11 once that split's friction was learned, see docs/decisions.md
+- Auth: session cookie (HttpOnly) + CSRF, decided over JWT in Phase 1.7

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -36,10 +37,6 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
-
-# --- Notes app: MongoDB connection info (see config/mongo.py) ---
-MONGODB_URI = os.environ.get('MONGODB_URI')
-MONGODB_DB_NAME = os.environ.get('MONGODB_DB_NAME', 'notes_app')
 
 
 # Application definition
@@ -109,12 +106,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-
+#
+# One database for everything now — auth/sessions AND notes — on Postgres
+# (Neon). See docs/decisions.md for why we moved off the MongoDB+SQLite
+# split. DATABASE_URL is required, not defaulted to SQLite: a missing env
+# var should fail loudly (KeyError below) the moment any command touches
+# the database, not silently fall back to the wrong store.
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        os.environ['DATABASE_URL'],
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
 
 

@@ -13,7 +13,7 @@ A Notes app where users can register, log in, and manage their own private
 notes. The point of the project isn't the app itself — it's using a
 realistic, small application as a vehicle to learn:
 
-1. **Build** — React + Django REST Framework + MongoDB
+1. **Build** — React + Django REST Framework + PostgreSQL (Neon)
 2. **Test** — automated unit/integration/API tests
 3. **Secure** — manual testing with Burp Suite, fixing real vulnerabilities
 4. **Load test** — Locust, k6, JMeter
@@ -28,17 +28,17 @@ _To be filled in as it's built and understood — see `docs/architecture.md`
 for the running, detailed version. High level, this is the target:_
 
 ```
-User → React (Vite) → REST API → Django + DRF → MongoDB
+User → React (Vite) → REST API → Django + DRF → PostgreSQL (Neon)
 ```
 
 ## Tech Stack
 
 | Layer      | Choice                     |
 |------------|-----------------------------|
-| Frontend   | React + Vite                |
+| Frontend   | React + Vite (JavaScript)   |
 | Backend    | Python + Django + DRF       |
-| Database   | MongoDB                     |
-| Auth       | TBD — decided in Phase 1.7 after comparing session vs JWT |
+| Database   | PostgreSQL (Neon) — see `docs/decisions.md` for why this replaced an earlier MongoDB + SQLite split |
+| Auth       | Session cookie (HttpOnly) + CSRF, not JWT — see `docs/decisions.md` |
 | Containers | Docker + Docker Compose     |
 | CI/CD      | GitHub Actions              |
 | Proxy      | Nginx                       |

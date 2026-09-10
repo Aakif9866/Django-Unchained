@@ -152,31 +152,28 @@ having JS access to this origin (which is what SameSite + CORS also guard).
 
 ## Database Flow
 
-Two databases, deliberately:
+One database now: PostgreSQL, hosted on Neon. Everything — `django.contrib.auth`'s
+`User`/`Session`/admin tables *and* `notes` — lives there, both reached
+through Django's ORM.
 
 ```
-django.contrib.auth (User, Session, admin)  →  SQLite (Django's own ORM)
-notes (title, content, owner_id)            →  MongoDB, via pymongo directly
-                                                 (config/mongo.py, notes/views.py)
+django.contrib.auth (User, Session, admin)  →  Postgres, Django's ORM
+notes (Note model: title, content, owner FK) →  Postgres, Django's ORM
 ```
 
-A note document looks like:
-```json
-{
-  "_id": ObjectId("..."),
-  "owner_id": 1,
-  "title": "First note",
-  "content": "hello mongo",
-  "created_at": "2026-...",
-  "updated_at": "2026-..."
-}
-```
+`Note.owner` is a real `ForeignKey(User)` (`notes/models.py`) — Postgres
+itself enforces that a note can't reference a user that doesn't exist, and
+`on_delete=models.CASCADE` means deleting a user deletes their notes at the
+database level, not because application code remembered to. Every notes
+query still filters by `owner=request.user` (`notes/views.py`) — that
+filter *is* the authorization check, same as before, just backed by an
+enforced relationship instead of a bare integer.
 
-`owner_id` is Django's numeric `User.id` — the link between the two
-databases is just that plain integer, not a real foreign key (MongoDB
-doesn't enforce referential integrity across collections, let alone across
-a different database entirely). Every notes query filters by
-`owner_id: request.user.id` — that filter *is* the authorization check.
+> **History**: Phase 1 originally ran this as two databases — Django's
+> auth on SQLite, notes hand-written against MongoDB via `pymongo` — to
+> deliberately learn the friction of pairing Django with a non-relational
+> store. That friction was real and got learned; `docs/decisions.md` has
+> both the original reasoning and the migration decision that replaced it.
 
 ## Docker Architecture
 

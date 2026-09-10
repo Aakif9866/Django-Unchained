@@ -31,7 +31,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done & verified
 ### 1.2 Dev Environment
 - [~] uv-managed Python environment created (`backend/pyproject.toml` + `.venv`)
 - [~] Django + DRF installed
-- [~] MongoDB running locally (Atlas cluster, not local — see docs/decisions.md)
+- [~] Database reachable (Neon Postgres — originally MongoDB Atlas, see docs/decisions.md)
 - [~] Node.js / npm / Vite / React set up
 
 ### 1.3–1.4 Django + DRF Fundamentals
@@ -40,9 +40,14 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done & verified
 - [~] Views + URLs working (`/api/auth/*`, `/api/notes/*`)
 - [~] DRF serializers/API views working
 
-### 1.5 MongoDB
-- [~] MongoDB connection from Django working (`backend/config/mongo.py`, raw pymongo)
-- [~] Integration approach explained in docs/decisions.md
+### 1.5 Database
+> **2026-09-11 — migrated off MongoDB to PostgreSQL (Neon)**, on branch
+> `postgres-migration`, at the user's direction after they identified
+> Django's ORM/migrations/admin as fundamentally relational. Full
+> reasoning in `docs/decisions.md`; original MongoDB entries kept there,
+> marked superseded, not deleted.
+- [~] Database connection from Django working (`config/settings.py` DATABASES, real `Note` ORM model)
+- [~] Integration approach (and the migration's reasoning) explained in docs/decisions.md
 
 ### 1.6 React Fundamentals
 - [~] Vite React app created (`frontend/`, JavaScript — see docs/decisions.md)

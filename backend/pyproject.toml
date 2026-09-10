@@ -5,9 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "dj-database-url>=3.1.2",
     "django>=6.1.1",
     "django-cors-headers>=4.9.0",
     "djangorestframework>=3.18.1",
-    "pymongo>=4.18.1",
+    "psycopg[binary]>=3.3.5",
     "python-dotenv>=1.2.3",
 ]
