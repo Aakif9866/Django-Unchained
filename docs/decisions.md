@@ -82,6 +82,12 @@ and we only hand-roll the parts that are genuinely MongoDB (notes).
 Tradeoffs: Two databases running for one small app is genuinely more moving parts than a single
 Postgres would be — this is a deliberate, visible cost of the "learn real Mongo integration"
 goal from `docs/decisions.md`'s MongoDB entry above, not an accident.
+Deployment caveat (confirmed with user 2026-09-10, revisit in Phase 3.4/3.5): SQLite is a local
+file, not a networked service — it breaks silently on ephemeral container filesystems (data
+wiped on restart/redeploy) and doesn't work at all across multiple backend instances (each gets
+its own file). Fine for local dev now; before any real deployment, swap `DATABASES['default']`
+to PostgreSQL, which is a small, mechanical change. Not done now — no reason to run Postgres
+before Phase 3 actually needs it.
 
 ### Decision: JavaScript (not TypeScript) for the frontend
 Alternatives: TypeScript
