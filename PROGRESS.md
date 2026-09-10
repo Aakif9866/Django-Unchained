@@ -14,51 +14,62 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done & verified
 
 ## Phase 1 — Application Engineering
 
+> **2026-09-10 — Speedrun note:** at the user's explicit request (time
+> constraint, prior MERN-notes experience), Claude built Phase 1 in one
+> pass instead of the concept-by-concept cycle — see `docs/decisions.md`
+> for the choices made along the way. Everything below is marked `[~]`
+> (code exists, functionally verified by Claude via curl/build, running
+> live against real MongoDB) rather than `[x]` — per this file's own rule,
+> `[x]` only happens once the user has personally run it and can explain
+> it back. Converting `[~]` → `[x]` is literally 1.9 below.
+
 ### 1.1 Git
-- [ ] `git init`
-- [ ] First commit
-- [ ] `.gitignore` created
+- [x] `git init`
+- [x] First commit
+- [x] `.gitignore` created
 
 ### 1.2 Dev Environment
-- [ ] Python virtual environment created
-- [ ] Django + DRF installed
-- [ ] MongoDB running locally
-- [ ] Node.js / npm / Vite / React set up
+- [~] uv-managed Python environment created (`backend/pyproject.toml` + `.venv`)
+- [~] Django + DRF installed
+- [~] MongoDB running locally (Atlas cluster, not local — see docs/decisions.md)
+- [~] Node.js / npm / Vite / React set up
 
 ### 1.3–1.4 Django + DRF Fundamentals
-- [ ] Django project created
-- [ ] Django app created
-- [ ] First view + URL working
-- [ ] DRF installed and first serializer/API view working
+- [~] Django project created (`backend/config/`)
+- [~] Django apps created (`accounts`, `notes`)
+- [~] Views + URLs working (`/api/auth/*`, `/api/notes/*`)
+- [~] DRF serializers/API views working
 
 ### 1.5 MongoDB
-- [ ] MongoDB connection from Django working
-- [ ] ODM/library choice explained and installed
+- [~] MongoDB connection from Django working (`backend/config/mongo.py`, raw pymongo)
+- [~] Integration approach explained in docs/decisions.md
 
 ### 1.6 React Fundamentals
-- [ ] Vite React app created
-- [ ] First component rendering
-- [ ] First API call to Django working
+- [~] Vite React app created (`frontend/`, JavaScript — see docs/decisions.md)
+- [~] Components rendering (Login, Register, Notes sidebar + editor)
+- [~] API calls to Django working (`frontend/src/api/client.js`)
 
 ### 1.7 Authentication
-- [ ] Auth strategy chosen and explained (session vs JWT)
-- [ ] Register endpoint
-- [ ] Login endpoint
-- [ ] Logout endpoint
-- [ ] Current user endpoint
-- [ ] Protected backend endpoints
-- [ ] Protected frontend routes
+- [~] Auth strategy chosen and explained (session cookie — see docs/decisions.md)
+- [~] Register endpoint
+- [~] Login endpoint
+- [~] Logout endpoint
+- [~] Current user endpoint
+- [~] Protected backend endpoints (`IsAuthenticated` default)
+- [~] Protected frontend routes (`ProtectedRoute`)
 
 ### 1.8 Notes CRUD
-- [ ] Create note (backend + frontend)
-- [ ] List notes (backend + frontend)
-- [ ] Read single note (backend + frontend)
-- [ ] Update note (backend + frontend)
-- [ ] Delete note (backend + frontend)
-- [ ] Authorization: user can only access own notes
+- [~] Create note (backend + frontend)
+- [~] List notes (backend + frontend)
+- [~] Read single note (backend)
+- [~] Update note (backend + frontend)
+- [~] Delete note (backend + frontend)
+- [~] Authorization: user can only access own notes (curl-verified: alice/bob isolation, 404 not 403)
 
-### 1.9 Phase 1 Verification
-- [ ] Manual verification of full auth + CRUD + isolation
+### 1.9 Phase 1 Verification — THE ACTUAL NEXT STEP
+- [ ] User has personally run the app (both servers, register/login/CRUD in the browser)
+- [ ] User has read through backend + frontend code with Claude and can explain each piece
+- [ ] Manual verification of full auth + CRUD + isolation, by the user
 - [ ] User can explain architecture back without help
 
 ## Phase 2 — Security + Performance Engineering

@@ -123,12 +123,60 @@ Frontend clears local state, redirects to login
 
 ## Authentication Flow
 
-_Filled in once the session-vs-JWT decision is made in Phase 1.7._
+Session-cookie based (see `docs/decisions.md` for why over JWT).
+
+```
+Browser loads React app
+ ↓
+GET /api/auth/csrf/  → Django sets a `csrftoken` cookie (readable by JS —
+                        it's not the secret, it's the anti-forgery proof)
+ ↓
+POST /api/auth/login/  { username, password }, header X-CSRFToken: <cookie value>
+ ↓
+Django's CsrfViewMiddleware checks the header matches the cookie
+ ↓
+authenticate() checks the password hash, login() creates a session row +
+ sets `sessionid` cookie — HttpOnly, unreadable by JS (XSS can't steal it)
+ ↓
+Every later request: browser auto-attaches `sessionid` (credentials:'include'
+ in fetch) + we manually attach X-CSRFToken on unsafe methods
+ ↓
+DRF's SessionAuthentication resolves `sessionid` → request.user on every view
+```
+
+Why both a session cookie *and* a CSRF token: the session cookie alone would
+let any site the user has open silently ride their session (classic CSRF) —
+a `<form>` on an attacker's page can make the browser send the cookie
+automatically, but it can't read/forge the CSRF header without already
+having JS access to this origin (which is what SameSite + CORS also guard).
 
 ## Database Flow
 
-_Filled in once the MongoDB integration (ODM/driver choice) is made in
-Phase 1.5._
+Two databases, deliberately:
+
+```
+django.contrib.auth (User, Session, admin)  →  SQLite (Django's own ORM)
+notes (title, content, owner_id)            →  MongoDB, via pymongo directly
+                                                 (config/mongo.py, notes/views.py)
+```
+
+A note document looks like:
+```json
+{
+  "_id": ObjectId("..."),
+  "owner_id": 1,
+  "title": "First note",
+  "content": "hello mongo",
+  "created_at": "2026-...",
+  "updated_at": "2026-..."
+}
+```
+
+`owner_id` is Django's numeric `User.id` — the link between the two
+databases is just that plain integer, not a real foreign key (MongoDB
+doesn't enforce referential integrity across collections, let alone across
+a different database entirely). Every notes query filters by
+`owner_id: request.user.id` — that filter *is* the authorization check.
 
 ## Docker Architecture
 
