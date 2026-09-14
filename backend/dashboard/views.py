@@ -5,8 +5,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-# phase-2-results/ lives at the repo root, one level above backend/.
-DASHBOARD_DATA_PATH = settings.BASE_DIR.parent / 'phase-2-results' / 'dashboard-data.json'
+# A bundled copy, not a reach-outside-backend/ path. The original lives
+# in phase-2-results/dashboard-data.json at the repo root — but Railway
+# builds this service with rootDirectory="backend", so its Docker build
+# context is backend/ ONLY; a path like BASE_DIR.parent (one level above
+# backend/) simply isn't there at build or runtime, regardless of what
+# exists in the git repo. Docker Compose's local dev setup worked around
+# that with a host volume mount, but Railway has no equivalent "mount the
+# repo" mechanism. Keeping this file inside the Django app itself makes
+# it work identically everywhere with no deployment-specific config.
+# NOTE: this is a copy, not a symlink (Docker COPY doesn't reliably
+# follow host symlinks) — re-copy from phase-2-results/dashboard-data.json
+# whenever that file is regenerated.
+DASHBOARD_DATA_PATH = settings.BASE_DIR / 'dashboard' / 'data' / 'dashboard-data.json'
 
 
 class Phase2DashboardView(APIView):

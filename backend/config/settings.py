@@ -80,6 +80,20 @@ CORS_ALLOWED_ORIGINS = [os.environ.get('CORS_ALLOWED_ORIGIN', 'http://localhost:
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [os.environ.get('CORS_ALLOWED_ORIGIN', 'http://localhost:5173')]
 
+# On localhost / Docker Compose, frontend and backend share a "site"
+# (same registrable domain, only the port differs) — SameSite=Lax
+# cookies flow fine. Two separate Railway subdomains are genuinely
+# cross-SITE, not just cross-origin: without SameSite=None (+ Secure,
+# which None requires), the browser silently drops the session/csrf
+# cookies on cross-site requests — auth would look like it works
+# (200 OK) and then just not persist. COOKIE_SAMESITE defaults to Lax
+# (unchanged local/Docker behavior); set to None only where the
+# frontend and backend are genuinely on different sites.
+SESSION_COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'Lax')
+SESSION_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'False') == 'True'
+CSRF_COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'Lax')
+CSRF_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'False') == 'True'
+
 # --- DRF: session-cookie authentication (HttpOnly, CSRF-protected) rather
 # than JWT — see docs/decisions.md for the reasoning. ---
 REST_FRAMEWORK = {

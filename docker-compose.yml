@@ -11,15 +11,12 @@ services:
       # a browser ever talks to directly, so CORS doesn't come into play
       # for browser requests at all. Kept for direct-to-backend testing.
       CORS_ALLOWED_ORIGIN: "http://localhost:8080"
-    # dashboard/views.py reads phase-2-results/dashboard-data.json via
-    # settings.BASE_DIR.parent — that's the repo root in local dev, but
-    # the backend image's build context is ./backend only, so nothing
-    # under phase-2-results/ ever gets baked into the image. Mounted
-    # read-only instead of restructuring the build context: test-result
-    # data is runtime content, not something that belongs inside a
-    # backend application image.
-    volumes:
-      - ./phase-2-results:/phase-2-results:ro
+    # dashboard/views.py reads a bundled copy at backend/dashboard/data/
+    # (not phase-2-results/ at the repo root) — a volume mount here would
+    # only work locally; Railway's build has no equivalent "mount the
+    # repo" mechanism, so the data lives inside the image instead. See
+    # the comment in dashboard/views.py for the full reasoning.
+    #
     # No "ports:" here on purpose — only nginx (via the frontend service)
     # is meant to be reachable from outside the compose network, matching
     # the target architecture (Internet -> Nginx -> Django).

@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework import status
@@ -36,13 +37,23 @@ TEST_USERNAME_PREFIXES = [
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CsrfView(APIView):
-    """GET this once on app load. Its only job is to make Django set the
-    csrftoken cookie in the browser, so the frontend has something to read
-    and send back as X-CSRFToken on POST/PUT/DELETE requests."""
+    """GET this once on app load — and again after login (see LoginView).
+
+    Originally just set the csrftoken cookie for the frontend to read via
+    document.cookie. That reading is what actually broke in production:
+    frontend and backend are genuinely different domains on Railway (not
+    same-origin like Docker, not same-site like localhost:5173/:8000), and
+    a cookie set by one domain is invisible to JS running on the other —
+    browser cookie-visibility rules, unrelated to SameSite/CORS (which
+    were already correct; the cookie was still being *sent* on requests
+    fine, just never *readable* by the frontend's own JS). Fixed by
+    handing the token to the frontend directly in the response body,
+    the standard pattern for exactly this cross-domain case — see
+    frontend/src/api/client.js."""
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response({'detail': 'CSRF cookie set'})
+        return Response({'detail': 'CSRF cookie set', 'csrfToken': get_token(request)})
 
 
 class UserCountView(APIView):
@@ -90,6 +101,11 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         login(request, user)  # creates the session + sets the sessionid cookie
+        # django.contrib.auth.login() also rotates the CSRF token (calls
+        # rotate_token() internally, a defense against session-fixation-
+        # adjacent CSRF attacks) — the frontend's in-memory token goes
+        # stale the instant this returns. It re-fetches via CsrfView
+        # right after a successful login; see AuthContext.jsx.
         return Response(UserSerializer(user).data)
 
 

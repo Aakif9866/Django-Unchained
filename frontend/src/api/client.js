@@ -11,10 +11,17 @@ export class ApiError extends Error {
   }
 }
 
-function getCookie(name) {
-  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-  return match ? decodeURIComponent(match[1]) : null;
-}
+// The CSRF token used to be read straight off the csrftoken cookie via
+// document.cookie. That broke in production: frontend and backend are
+// genuinely different domains on Railway (not same-origin like Docker,
+// not same-site like localhost:5173/:8000 in dev), and a cookie set by
+// one domain is invisible to JS running on another — the browser still
+// *sends* the cookie on requests fine (that's why login itself worked),
+// it just can't be *read* cross-domain. Fixed by having the backend hand
+// the token over directly in the response body instead (CsrfView), kept
+// here in memory. Login rotates the token server-side, so it's refreshed
+// again right after a successful login — see AuthContext.jsx.
+let csrfToken = null;
 
 /** Turns a DRF validation-error body ({field: [msg, ...]} or {detail: "..."})
  * into one readable string for the UI. */
@@ -33,7 +40,7 @@ async function request(path, { method = 'GET', body } = {}) {
   // Django's CSRF middleware protects every unsafe method, even ones that
   // don't require login (e.g. register) — see accounts/views.CsrfView.
   if (method !== 'GET') {
-    headers['X-CSRFToken'] = getCookie('csrftoken');
+    headers['X-CSRFToken'] = csrfToken;
   }
 
   const res = await fetch(`${API_URL}${path}`, {
@@ -59,7 +66,11 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 export const api = {
-  getCsrfCookie: () => request('/api/auth/csrf/'),
+  getCsrfCookie: async () => {
+    const data = await request('/api/auth/csrf/');
+    csrfToken = data.csrfToken;
+    return data;
+  },
   getUserCount: () => request('/api/auth/user-count/'),
   register: (username, password) =>
     request('/api/auth/register/', { method: 'POST', body: { username, password } }),

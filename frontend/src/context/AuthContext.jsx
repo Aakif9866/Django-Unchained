@@ -24,6 +24,12 @@ export function AuthProvider({ children }) {
 
   async function login(username, password) {
     setUser(await api.login(username, password));
+    // Django's login() rotates the CSRF token server-side (see
+    // accounts/views.LoginView) — the in-memory token client.js was
+    // using for this very request is now stale for the *next* one.
+    // Re-fetch it immediately rather than waiting for a note-creation
+    // request to fail and explain why.
+    await api.getCsrfCookie();
   }
 
   async function register(username, password) {

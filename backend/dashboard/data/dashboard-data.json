@@ -1,0 +1,180 @@
+{
+  "generated_at": "2026-09-14T00:00:00Z",
+  "generated_by": "Claude, reproduced against the Docker/Compose stack (Phase 3)",
+  "branch": "phase-3-devops-production",
+  "app_state": "PostgreSQL (Neon) architecture, containerized: nginx + gunicorn (gthread, 3 workers x 20 threads)",
+  "summary": {
+    "total_tests": 32,
+    "passed": 28,
+    "failed": 2,
+    "info": 2,
+    "blocked": 0,
+    "deferred": 7,
+    "critical": 0,
+    "high": 1,
+    "medium": 1,
+    "low": 1
+  },
+  "health": {
+    "security": "AT_RISK",
+    "performance": "OK_WITH_FINDINGS",
+    "reliability": "OK",
+    "scalability": "UNKNOWN_BEYOND_100_USERS",
+    "database": "OK_WITH_FINDINGS",
+    "devops": "OK_WITH_FINDINGS"
+  },
+  "api_tests": {
+    "tool": "Django test framework (APITestCase) against live Postgres/Neon",
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "duration_seconds": 148.3,
+    "note": "Not rerun this pass — no application logic changed since Phase 2 (only Docker/gunicorn infra and an unrelated user-count endpoint), so the original run still stands. 148s for 19 simple tests is itself a finding — see performance.network_latency.",
+    "categories": [
+      { "name": "Registration", "count": 3, "passed": 3 },
+      { "name": "Login/Logout/Session", "count": 5, "passed": 5 },
+      { "name": "Notes CRUD", "count": 6, "passed": 6 },
+      { "name": "Cross-user authorization (IDOR)", "count": 5, "passed": 5 }
+    ]
+  },
+  "security_findings": [
+    {
+      "id": "SEC-05",
+      "title": "No rate limiting on login endpoint",
+      "severity": "HIGH",
+      "component": "accounts/views.py LoginView",
+      "status": "OPEN",
+      "impact": "Unlimited password-guessing attempts against any account, confirmed identically against both the dev server and the Docker/nginx/gunicorn stack (target-independent, this is an application-logic gap).",
+      "exploitable": true,
+      "fix_type": "code",
+      "recommendation": "Add DRF throttling (AnonRateThrottle/ScopedRateThrottle) or django-axes on the login view."
+    },
+    {
+      "id": "SEC-03c",
+      "title": "No Content-Security-Policy header",
+      "severity": "MEDIUM",
+      "component": "config/settings.py MIDDLEWARE",
+      "status": "OPEN",
+      "impact": "No defense-in-depth against XSS beyond React's own output escaping. Also target-independent.",
+      "exploitable": false,
+      "fix_type": "code",
+      "recommendation": "Add django-csp with a policy scoped to this app's actual asset origins."
+    },
+    {
+      "id": "SEC-01b",
+      "title": "Anonymous endpoints (register/login) have no CSRF check",
+      "severity": "LOW",
+      "component": "DRF SessionAuthentication (framework default, not app misconfiguration)",
+      "status": "ACCEPTED",
+      "impact": "\"Login CSRF\" — unchanged from Phase 2, not Docker-related.",
+      "exploitable": true,
+      "fix_type": "n/a",
+      "recommendation": "By design in DRF; not treated as an app defect."
+    }
+  ],
+  "security_passed": [
+    { "id": "SEC-01", "title": "Authenticated writes correctly reject missing CSRF token (403)" },
+    { "id": "SEC-02", "title": "CORS correctly refuses to echo an untrusted Origin" },
+    { "id": "SEC-03a", "title": "Baseline hardening headers present (nosniff, X-Frame-Options DENY, Referrer-Policy, COOP)" },
+    { "id": "SEC-04a", "title": "DEBUG=False in Docker: no URL structure leaked on 404s" },
+    { "id": "SEC-04b", "title": "DEBUG=False in Docker: no traceback disclosure risk" },
+    { "id": "SEC-06", "title": "Session cookie is HttpOnly (confirmed via raw Set-Cookie header)" }
+  ],
+  "reliability_findings": [
+    { "id": "REL-01", "title": "Malformed JSON body → clean 400, not a 500", "status": "PASS" },
+    { "id": "REL-02", "title": "Oversized field (10,000 chars) rejected by serializer validation before reaching the DB", "status": "PASS" },
+    { "id": "REL-03", "title": "5 concurrent identical-username registrations under TRUE multi-process parallelism (Docker/gunicorn, not just threads) → exactly 1 succeeded", "status": "PASS", "note": "First rerun attempt falsely showed FAIL (0 succeeded) — root cause was a stale hardcoded test username already taken from a prior run against the shared Neon DB, not a real race condition. Fixed by generating a fresh username per run; retested and confirmed correct." }
+  ],
+  "performance": {
+    "tool_comparison": {
+      "locust": "Python-native, easy to script the exact multi-step user flow (register→login→CRUD) with real state (note IDs) carried between requests.",
+      "k6": "JS-based, built-in percentile/threshold reporting out of the box (http_req_failed rate<0.01 as a pass/fail gate), lighter resource footprint."
+    },
+    "network_latency": "Every DB operation is a real network round-trip to Neon (not localhost) — this shows up everywhere: the 19-test suite took 148s, and it's a contributor to auth latency under load in every environment tested.",
+    "load_stages": [
+      {
+        "tool": "locust", "environment": "dev server (manage.py runserver)", "users": 10, "spawn_rate": 2, "duration_s": 30,
+        "total_requests": 83, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 3.10,
+        "notes_avg_ms": 856, "auth_avg_ms": 2882
+      },
+      {
+        "tool": "locust", "environment": "dev server (manage.py runserver)", "users": 50, "spawn_rate": 5, "duration_s": 40,
+        "total_requests": 574, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 14.43,
+        "notes_avg_ms": 845, "auth_avg_ms": 3037
+      },
+      {
+        "tool": "locust", "environment": "dev server (manage.py runserver)", "users": 100, "spawn_rate": 10, "duration_s": 45,
+        "total_requests": 1111, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 24.75,
+        "notes_avg_ms": 850, "auth_avg_ms": 6104
+      },
+      {
+        "tool": "locust", "environment": "Docker: gunicorn sync workers (misconfigured, 3 slots total)", "users": 50, "spawn_rate": 5, "duration_s": 40,
+        "total_requests": 125, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 3.20,
+        "notes_avg_ms": 18211, "auth_avg_ms": 9592,
+        "note": "Everything degraded, including the near-zero-work /api/auth/csrf/ endpoint — proved this was request-slot queueing (only 3 concurrent slots for the whole backend), not a CPU/hashing problem. Led directly to the gthread fix below."
+      },
+      {
+        "tool": "locust", "environment": "Docker: gunicorn gthread, 3 workers x 20 threads (tuned)", "users": 10, "spawn_rate": 2, "duration_s": 30,
+        "total_requests": 72, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 2.46,
+        "notes_avg_ms": 1400, "auth_avg_ms": 3467
+      },
+      {
+        "tool": "locust", "environment": "Docker: gunicorn gthread, 3 workers x 20 threads (tuned)", "users": 50, "spawn_rate": 5, "duration_s": 40,
+        "total_requests": 506, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 12.70,
+        "notes_avg_ms": 1156, "auth_avg_ms": 4618
+      },
+      {
+        "tool": "locust", "environment": "Docker: gunicorn gthread, 3 workers x 20 threads (tuned)", "users": 100, "spawn_rate": 10, "duration_s": 45,
+        "total_requests": 1201, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 26.84,
+        "notes_avg_ms": 1329, "auth_avg_ms": 2725
+      },
+      {
+        "tool": "k6", "environment": "dev server (manage.py runserver)", "users": 50, "spawn_rate": null, "duration_s": 35,
+        "total_requests": 835, "failures": 0, "error_rate_pct": 0.0, "req_per_s": 19.51,
+        "aggregate_avg_ms": 1420, "aggregate_p95_ms": 3970
+      }
+    ],
+    "bottleneck": {
+      "title": "Two separate findings, not one — the original hypothesis was half right",
+      "finding_1_confirmed": {
+        "title": "gunicorn's default 'sync' worker class is a severe concurrency regression versus the dev server",
+        "root_cause": "sync workers handle exactly one request at a time per process. 3 workers = 3 concurrent slots for the ENTIRE backend. 50 virtual users meant 38 of them queued behind those 3 slots at any moment.",
+        "evidence": "With sync workers, even /api/auth/csrf/ (a GET that does zero DB work) degraded to 22s p95 at 50 users. Switching to --worker-class gthread --threads 20 (60 concurrent slots across 3 workers) brought that same endpoint back to single-digit milliseconds and notes CRUD back to ~1.1-1.4s (near dev-server parity) at the same load.",
+        "confidence": "HIGH — directly isolated via a single-request timing test (2-20ms either way, ruling out per-request/network overhead) before and after the fix, not inferred."
+      },
+      "finding_2_unresolved": {
+        "title": "Auth (register/login) latency vs notes CRUD, comparing dev server to tuned Docker, is noisy and NOT cleanly explained",
+        "observation": "At 50 users, tuned-Docker auth latency (4.6s avg) was worse than the dev server's 50-user number (3.0s avg). At 100 users, tuned-Docker auth (2.7s avg) was BETTER than the dev server's 100-user number (6.1s avg). That's not a consistent trend in either direction.",
+        "honest_assessment": "The original Phase 2 hypothesis (PBKDF2 hashing is CPU-bound and serializes under the GIL) is now uncertain — CPython's hashlib functions typically release the GIL during the underlying OpenSSL computation, which would undercut that theory. Plausible remaining contributors, NONE isolated as the confirmed cause: Neon connection-pool (PgBouncer) contention differing between environments, run-to-run variance on a shared free-tier Neon instance, or Docker Desktop's VM-based networking behaving differently under sustained concurrent connections versus the single-request test that ruled out baseline latency.",
+        "confidence": "LOW — reported as genuinely open rather than dressed up with a plausible-sounding theory. Further isolation (e.g. testing against a local, non-shared Postgres to remove Neon as a variable) is deferred, not pursued indefinitely — see DEFERRED_TESTS.md."
+      },
+      "reliability_note": "Zero failed requests at every single stage tested, across both environments and all three worker configurations. The app never broke under load — only latency varied."
+    }
+  },
+  "database": {
+    "findings": [
+      {
+        "id": "DB-01", "title": "ForeignKey(owner) auto-indexed by Django, FK constraint enforced by Postgres",
+        "status": "PASS",
+        "evidence": "psql \\d notes_note shows notes_note_owner_id_8dafc06d btree index and a real FK constraint to auth_user(id). Confirmed again under REL-03's true multi-process concurrency test."
+      },
+      {
+        "id": "DB-02", "title": "Test database teardown fails against Neon's pooled (PgBouncer) connection",
+        "status": "ISSUE", "severity": "LOW",
+        "evidence": "Unchanged from Phase 2 — psycopg.errors.ObjectInUse on manage.py test teardown.",
+        "recommendation": "Use Neon's direct (non-pooled) connection string for admin operations like migrate/test."
+      }
+    ]
+  },
+  "devops": {
+    "status": "OK_WITH_FINDINGS",
+    "reason": "Docker + Docker Compose built and verified end-to-end this pass: multi-stage backend image (uv-managed deps, non-root user, gunicorn), multi-stage frontend image (Vite build -> nginx, reverse-proxying /api and /admin to the backend, SPA fallback routing), healthchecked startup ordering, whitenoise serving Django admin's static assets without a separate volume. Two real bugs found and fixed during this build, not hidden: (1) WORKDIR-created directory ownership meant a non-root user couldn't create staticfiles/ at runtime, (2) gunicorn's default sync worker class caused severe concurrency regression under load (see performance.bottleneck.finding_1_confirmed). CI (GitHub Actions) and CD (actual deployment) are separate, not yet done.",
+    "verified": [
+      "docker compose build: both images build cleanly",
+      "docker compose up: backend passes healthcheck (migrate + Neon connectivity) before frontend starts",
+      "Full user flow (register, login, notes CRUD) working end-to-end through nginx -> gunicorn -> Neon",
+      "Django admin panel loads with correctly-served static CSS/JS via whitenoise",
+      "DEBUG=False correctly enforced in the container (see security_findings SEC-04a/SEC-04b)"
+    ]
+  }
+}
