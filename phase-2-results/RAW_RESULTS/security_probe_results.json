@@ -10,7 +10,7 @@
       "body": "{\"detail\":\"CSRF Failed: CSRF token missing.\"}"
     },
     "notes": "This is the endpoint that matters: once a user has a real session, a state-changing request missing the CSRF header must be rejected. (Confirmed correct \u2014 see notes on SEC-01b for the anonymous-endpoint nuance this v1 run conflated with this.)",
-    "timestamp": "2026-09-10T20:28:31.340849+00:00"
+    "timestamp": "2026-09-14T16:51:26.713281+00:00"
   },
   {
     "test_id": "SEC-01b",
@@ -22,7 +22,7 @@
       "status_code": 201
     },
     "notes": "By design (DRF only enforces session-CSRF for authenticated requests), anonymous endpoints like register/login accept requests with no CSRF header. This is standard DRF behavior, not misconfiguration specific to this app. Real-world impact here is low: no sensitive data exists before a victim deliberately logs in and starts creating notes themselves.",
-    "timestamp": "2026-09-10T20:28:34.543375+00:00"
+    "timestamp": "2026-09-14T16:51:27.701783+00:00"
   },
   {
     "test_id": "SEC-02",
@@ -35,7 +35,7 @@
       "access_control_allow_origin": null
     },
     "notes": "Access-Control-Allow-Origin must never echo back an arbitrary Origin header for a credentialed API. Confirmed absent.",
-    "timestamp": "2026-09-10T20:28:34.546643+00:00"
+    "timestamp": "2026-09-14T16:51:27.711474+00:00"
   },
   {
     "test_id": "SEC-03a",
@@ -52,7 +52,7 @@
       }
     },
     "notes": "These are Django 6.1's own SecurityMiddleware/XFrameOptions defaults \u2014 all present out of the box, nothing we configured.",
-    "timestamp": "2026-09-10T20:28:34.551343+00:00"
+    "timestamp": "2026-09-14T16:51:27.720859+00:00"
   },
   {
     "test_id": "SEC-03b",
@@ -64,7 +64,7 @@
       "hsts_header": null
     },
     "notes": "Correctly ABSENT in local HTTP dev \u2014 enabling HSTS before the site actually serves HTTPS would be actively harmful (it tells browsers to refuse plain HTTP for this host). Must be added when Phase 3 puts this behind real HTTPS, not before.",
-    "timestamp": "2026-09-10T20:28:34.551370+00:00"
+    "timestamp": "2026-09-14T16:51:27.720910+00:00"
   },
   {
     "test_id": "SEC-03c",
@@ -76,33 +76,32 @@
       "csp_header": null
     },
     "notes": "Genuinely missing \u2014 Django has no built-in CSP support (needs django-csp or a hand-written middleware). This is the one real gap in SEC-03, not a Phase-3-only concern like HSTS: a CSP meaningfully reduces XSS impact even on plain HTTP.",
-    "timestamp": "2026-09-10T20:28:34.551380+00:00"
+    "timestamp": "2026-09-14T16:51:27.720920+00:00"
   },
   {
     "test_id": "SEC-04a",
     "category": "SECURITY",
     "name": "DEBUG=True technical 404 reveals URL structure",
-    "status": "FAIL",
-    "severity": "LOW",
+    "status": "PASS",
+    "severity": "N/A",
     "evidence": {
       "status_code": 404,
-      "response_length": 2965
+      "response_length": 179
     },
     "notes": "Django's DEBUG=True 404 page shows the URL patterns it tried to match \u2014 a minor recon aid to an attacker, not a serious leak on its own.",
-    "timestamp": "2026-09-10T20:28:34.559519+00:00"
+    "timestamp": "2026-09-14T16:51:27.746265+00:00"
   },
   {
     "test_id": "SEC-04b",
     "category": "SECURITY",
     "name": "DEBUG=True full traceback disclosure on unhandled 500s",
-    "status": "FAIL",
-    "severity": "HIGH",
+    "status": "PASS",
+    "severity": "N/A",
     "evidence": {
-      "source": "observed directly during this project, Phase 1",
-      "context": "When the MongoDB connection failed mid-development (before the Postgres migration), a request to /api/notes/ returned a full Django debug page: complete Python traceback, file paths, and settings values, served directly to the HTTP client. Not re-triggered here to avoid manufacturing an artificial 500 against a working app; the earlier occurrence is the evidence."
+      "live_signal": "SEC-04a's 404 page shows DEBUG=False on this target"
     },
-    "notes": "DEBUG=True (backend/.env) is fine for local dev \u2014 it is what must never ship set to True in a real deployment. Not re-tested live here since forcing a genuine unhandled exception against working code would mean deliberately breaking something just to screenshot it.",
-    "timestamp": "2026-09-10T20:28:34.559534+00:00"
+    "notes": "This target runs with DEBUG=False \u2014 the Phase 1 HIGH finding (full traceback disclosure, seen during a real MongoDB failure before the Postgres migration) does not apply here. It still applies to local dev, which intentionally keeps DEBUG=True \u2014 see docs/security.md.",
+    "timestamp": "2026-09-14T16:51:27.746306+00:00"
   },
   {
     "test_id": "SEC-05",
@@ -128,11 +127,11 @@
         401,
         401
       ],
-      "elapsed_seconds": 12.39,
+      "elapsed_seconds": 9.95,
       "attempt_count": 15
     },
-    "notes": "15 login attempts in 12.39s, all returned [401] \u2014 no 429 anywhere means there is currently no rate limiting on login. A real attacker could try thousands of passwords per minute against one account.",
-    "timestamp": "2026-09-10T20:28:46.955764+00:00"
+    "notes": "15 login attempts in 9.95s, all returned [401] \u2014 no 429 anywhere means there is currently no rate limiting on login. A real attacker could try thousands of passwords per minute against one account.",
+    "timestamp": "2026-09-14T16:51:37.703516+00:00"
   },
   {
     "test_id": "SEC-06",
@@ -141,11 +140,11 @@
     "status": "PASS",
     "severity": "N/A",
     "evidence": {
-      "set_cookie_header": "sessionid=pk5me4gy1hf5vv9kl9ykpebb36g0pwyk; expires=Thu, 24 Sep 2026 20:28:54 GMT; HttpOnly; Max-Age=1209600; Path=/; SameSite=Lax",
+      "set_cookie_header": "sessionid=m7ykvj8biepmpodd4untjx75xyhhapir; expires=Mon, 28 Sep 2026 16:51:43 GMT; HttpOnly; Max-Age=1209600; Path=/; SameSite=Lax",
       "http_only": true,
       "secure": false
     },
     "notes": "HttpOnly present means JS (and therefore XSS) cannot read the session cookie \u2014 confirmed. Secure is correctly absent on local plain-HTTP dev; must be enabled (SESSION_COOKIE_SECURE) once this runs behind real HTTPS in Phase 3.",
-    "timestamp": "2026-09-10T20:28:55.704830+00:00"
+    "timestamp": "2026-09-14T16:51:44.684471+00:00"
   }
 ]

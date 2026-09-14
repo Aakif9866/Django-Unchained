@@ -118,6 +118,7 @@ export function Notes() {
 
         <div className="sidebar-nav">
           <Link to="/testing-dashboard" className="sidebar-nav-link">
+            <span className="sidebar-nav-dot" />
             Phase 2 Testing Dashboard
           </Link>
         </div>

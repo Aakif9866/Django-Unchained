@@ -4,12 +4,14 @@ Normal behavior is already covered by the automated test suite and load
 tests; this focuses on abnormal input and edge-case robustness.
 """
 import json
+import os
 import threading
+import uuid
 from datetime import datetime, timezone
 
 import requests
 
-BASE_URL = 'http://127.0.0.1:8000'
+BASE_URL = os.environ.get('TARGET_URL', 'http://127.0.0.1:8000')
 RESULTS = []
 
 
@@ -70,13 +72,21 @@ def main():
     )
 
     # --- REL-03: concurrent duplicate-username registration (race condition) ---
+    # Username must be fresh every run — this hits a persistent shared
+    # Neon database, not a throwaway per-run one. A hardcoded username
+    # was already taken by the first run's winner on every rerun since,
+    # making all 5 attempts correctly return 400 without ever exercising
+    # the actual race (caught by checking the raw evidence, not just the
+    # PASS/FAIL label — see docs/security.md's SEC-01 note for the same
+    # lesson elsewhere in this project).
+    race_username = f'race_condition_target_{uuid.uuid4().hex[:8]}'
     results = []
 
     def try_register():
         sess = get_session()
         csrf_ = sess.cookies.get('csrftoken')
         resp = sess.post(f'{BASE_URL}/api/auth/register/', json={
-            'username': 'race_condition_target', 'password': 'a-strong-password-9',
+            'username': race_username, 'password': 'a-strong-password-9',
         }, headers={'X-CSRFToken': csrf_})
         results.append(resp.status_code)
 

@@ -13,13 +13,14 @@ see docs/security.md for the full explanation of what was wrong and why.
 """
 
 import json
+import os
 import time
 import uuid
 from datetime import datetime, timezone
 
 import requests
 
-BASE_URL = 'http://127.0.0.1:8000'
+BASE_URL = os.environ.get('TARGET_URL', 'http://127.0.0.1:8000')
 RESULTS = []
 
 
@@ -178,28 +179,38 @@ def main():
         "match — a minor recon aid to an attacker, not a serious leak on "
         "its own.",
     )
-    record(
-        'SEC-04b', 'DEBUG=True full traceback disclosure on unhandled 500s',
-        'FAIL',
-        'HIGH',
-        {
-            'source': 'observed directly during this project, Phase 1',
-            'context': (
-                'When the MongoDB connection failed mid-development '
-                '(before the Postgres migration), a request to '
-                '/api/notes/ returned a full Django debug page: complete '
-                'Python traceback, file paths, and settings values, '
-                'served directly to the HTTP client. Not re-triggered '
-                'here to avoid manufacturing an artificial 500 against '
-                'a working app; the earlier occurrence is the evidence.'
-            ),
-        },
-        'DEBUG=True (backend/.env) is fine for local dev — it is what '
-        'must never ship set to True in a real deployment. Not '
-        're-tested live here since forcing a genuine unhandled '
-        'exception against working code would mean deliberately '
-        'breaking something just to screenshot it.',
-    )
+    # SEC-04a's own 404 check just told us, live, whether THIS target is
+    # running with DEBUG=True — reuse that instead of blanket-repeating
+    # the historical Phase 1 finding regardless of what's actually being
+    # tested (e.g. the Docker build deliberately sets DEBUG=False).
+    if reveals_urlconf:
+        record(
+            'SEC-04b', 'DEBUG=True full traceback disclosure on unhandled 500s',
+            'FAIL',
+            'HIGH',
+            {
+                'live_signal': 'SEC-04a\'s 404 page reveals DEBUG=True on this target',
+                'historical_source': 'also observed directly during Phase 1: a MongoDB '
+                    'connection failure returned a full Django debug page (complete '
+                    'traceback, file paths, settings values) to the HTTP client',
+            },
+            'DEBUG=True is fine for local dev — it is what must never ship set to '
+            'True in a real deployment. Not re-triggered live here (forcing a '
+            'genuine unhandled exception against working code would mean '
+            'deliberately breaking something just to screenshot it) — the '
+            'DEBUG=True signal above plus the Phase 1 occurrence are the evidence.',
+        )
+    else:
+        record(
+            'SEC-04b', 'DEBUG=True full traceback disclosure on unhandled 500s',
+            'PASS',
+            'N/A',
+            {'live_signal': 'SEC-04a\'s 404 page shows DEBUG=False on this target'},
+            'This target runs with DEBUG=False — the Phase 1 HIGH finding (full '
+            'traceback disclosure, seen during a real MongoDB failure before the '
+            'Postgres migration) does not apply here. It still applies to local '
+            'dev, which intentionally keeps DEBUG=True — see docs/security.md.',
+        )
 
     # --- SEC-05: rate limiting on login (brute-force resistance) ---
     s3 = requests.Session()

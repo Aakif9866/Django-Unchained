@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { UserCountBadge } from '../components/UserCountBadge';
 
 export function Login() {
   const { login } = useAuth();
@@ -29,6 +30,7 @@ export function Login() {
       <form className="auth-card" onSubmit={handleSubmit}>
         <h1 className="auth-title">Welcome back</h1>
         <p className="auth-subtitle">Log in to see your notes.</p>
+        <UserCountBadge />
 
         {error && <div className="form-error">{error}</div>}
 

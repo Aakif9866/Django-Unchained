@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { UserCountBadge } from '../components/UserCountBadge';
 
 export function Register() {
   const { register } = useAuth();
@@ -29,6 +30,7 @@ export function Register() {
       <form className="auth-card" onSubmit={handleSubmit}>
         <h1 className="auth-title">Create an account</h1>
         <p className="auth-subtitle">Your notes stay private to you.</p>
+        <UserCountBadge />
 
         {error && <div className="form-error">{error}</div>}
 

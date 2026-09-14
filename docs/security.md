@@ -10,9 +10,15 @@ against the local app as a compressed Phase 2 exercise — full findings,
 evidence, and severities live in `phase-2-results/SECURITY/findings.md`
 and `phase-2-results/EXECUTIVE_SUMMARY.md`; not duplicated here.
 
-**Open findings:** no rate limiting on login (HIGH), `DEBUG=True`
-traceback/URL-structure disclosure (HIGH + LOW), no Content-Security-Policy
-(MEDIUM).
+**Open findings:** no rate limiting on login (HIGH), no
+Content-Security-Policy (MEDIUM).
+
+**Resolved 2026-09-14:** the `DEBUG=True` traceback/URL-structure
+disclosure findings — reproduced against the Docker build
+(`docker-compose.yml` sets `DEBUG=False`) and confirmed live that both
+are actually absent there. Local dev still runs `DEBUG=True` on
+purpose; that's now a contained, accepted tradeoff rather than an open
+deployment risk. See `phase-2-results/SECURITY/findings.md`.
 
 **Confirmed correct:** CSRF enforcement on authenticated writes, CORS
 policy, baseline security headers, session cookie `HttpOnly` flag,

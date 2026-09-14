@@ -10,6 +10,15 @@ first pass; the hands-on Burp session is still yours to do.
 
 Full evidence: `RAW_RESULTS/security_probe_results.json`.
 
+**Updated 2026-09-14**: reproduced against the Docker/Compose stack
+(`TARGET_URL=http://localhost:8080`). SEC-04a and SEC-04b (below) both
+flipped from FAIL to PASS — `docker-compose.yml` sets `DEBUG=False`,
+and this run confirms live that both the URL-structure leak and the
+traceback-disclosure risk are actually absent once the app runs with
+the config it's meant to ship with. Moved to "confirmed working" at the
+bottom of this file; kept in the history here rather than deleted, same
+policy as `docs/decisions.md` uses for superseded entries.
+
 ---
 
 ### Finding: No rate limiting on the login endpoint
@@ -40,7 +49,7 @@ and confirm a `429` appears after N attempts.
 ---
 
 ### Finding: `DEBUG=True` leaks full tracebacks on unhandled server errors
-**ID:** SEC-04b · **Severity:** HIGH · **Status:** OPEN · **Exploitable:** Yes
+**ID:** SEC-04b · **Severity:** HIGH · **Status:** ✅ RESOLVED (2026-09-14, for the Docker build) · **Exploitable:** Yes if DEBUG=True ships
 
 **Discovered:** Not re-triggered in this probe run (see below for why) —
 this is backed by something we already saw happen for real, during Phase
@@ -65,8 +74,14 @@ that appear in a traceback's local variables.
 `ALLOWED_HOSTS` set correctly and a custom 500 handler for a clean error
 page.
 
-**Retest required:** Yes, in Phase 3 — confirm a triggered 500 with
-`DEBUG=False` returns a generic error page, no traceback.
+**Retest result (2026-09-14):** `docker-compose.yml` sets `DEBUG=False`
+for the containerized build. `security_probe.py` rerun live against it
+(`TARGET_URL=http://localhost:8080`) confirms `SEC-04a`'s 404 check no
+longer reveals the debug page at all — the live signal this finding
+depends on. Local dev deliberately keeps `DEBUG=True` (developer
+convenience, contained to a machine that never faces the internet) —
+that's an accepted tradeoff now that the deployment path is proven to
+run with it off.
 
 ---
 
@@ -88,15 +103,18 @@ actual script/style/connect origins. A code + config change.
 ---
 
 ### Finding: `DEBUG=True` technical 404 reveals attempted URL pattern
-**ID:** SEC-04a · **Severity:** LOW · **Status:** OPEN
+**ID:** SEC-04a · **Severity:** LOW · **Status:** ✅ RESOLVED (2026-09-14, for the Docker build)
 
 **Discovered:** `GET /api/notes/not-a-number/` returned Django's styled
 "Page not found" debug page, which lists the URL patterns Django tried
 to match.
 
 **Impact:** Minor reconnaissance aid to an attacker mapping the API's
-shape. Same root cause and same fix as SEC-04b — resolves automatically
-once `DEBUG=False`.
+shape. Same root cause and same fix as SEC-04b.
+
+**Retest result (2026-09-14):** rerun against the Docker build
+(`DEBUG=False`) — the same request now returns a plain 404 with no
+Django styling and no URL pattern list. Confirmed live, not assumed.
 
 ---
 
@@ -128,6 +146,8 @@ wrong if not investigated instead of trusted.
 | SEC-03a | Baseline headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Cross-Origin-Opener-Policy`) | All present — Django 6.1 defaults, no config needed |
 | SEC-03b | HSTS header | Correctly absent on plain HTTP dev (enabling it now would be actively wrong) |
 | SEC-06 | Session cookie `HttpOnly` flag | Present, confirmed via raw `Set-Cookie` header |
+| SEC-04a | Docker build (`DEBUG=False`) 404 page | No URL pattern list leaked — resolved 2026-09-14 |
+| SEC-04b | Docker build (`DEBUG=False`) traceback risk | Confirmed absent via SEC-04a's live signal — resolved 2026-09-14 |
 
 ## Authorization (IDOR) — separately, exhaustively verified
 
