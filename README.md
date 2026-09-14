@@ -357,20 +357,29 @@ Results are documented in:
 
 ## Docker & DevOps
 
-The application will eventually be containerized using Docker and Docker Compose.
+Containerized as of Phase 3 (branch `phase-3-devops-production`):
+`backend/Dockerfile` (multi-stage, `uv`-managed deps, gunicorn, non-root
+user) and `frontend/Dockerfile` (multi-stage: Vite build → nginx, which
+also reverse-proxies `/api` and `/admin` to the backend — no local
+database container, both services reach out to Neon like local dev
+already does). Run the whole stack:
 
-The DevOps portion explores:
+```bash
+docker compose up -d --build
+# open http://localhost:8080
+```
 
-- Reproducible environments
-- Containers
-- Networking
-- Environment variables
-- CI
-- CD
-- Reverse proxies
-- Deployment
-- Logging
-- Monitoring
+Two real bugs were found and fixed while building this, not glossed
+over: a non-root container user couldn't create its own `staticfiles/`
+directory (fixed with an explicit `chown` — `WORKDIR` creates that
+directory as `root` before a later `COPY --chown` step runs, so the
+chown only covered copied files, not the pre-existing directory), and
+gunicorn's *default* worker class caused a severe concurrency
+regression under load (fixed with `--worker-class gthread --threads
+20` — full writeup in `phase-2-results/PERFORMANCE/results.md`).
+
+Still open: CI (GitHub Actions), CD (an actual deployment target),
+logging, and monitoring — tracked in `PROGRESS.md`, not done yet.
 
 ---
 

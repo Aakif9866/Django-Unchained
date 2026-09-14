@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// ?? (nullish coalescing), not || — an intentionally empty string means
+// "same origin, call /api/... directly" (the Docker/nginx setup), which
+// || would incorrectly treat as unset and override with the dev default.
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 export class ApiError extends Error {
   constructor(message, status, data) {
@@ -57,6 +60,7 @@ async function request(path, { method = 'GET', body } = {}) {
 
 export const api = {
   getCsrfCookie: () => request('/api/auth/csrf/'),
+  getUserCount: () => request('/api/auth/user-count/'),
   register: (username, password) =>
     request('/api/auth/register/', { method: 'POST', body: { username, password } }),
   login: (username, password) =>

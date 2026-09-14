@@ -36,7 +36,12 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+# Django's DEBUG=True special-cases localhost/127.0.0.1 even with this
+# empty — that's why this worked in local dev so far. It stops working
+# the moment DEBUG=False (every request gets a 400 Invalid HTTP_HOST),
+# which is exactly the container/production case. Comma-separated env
+# var, e.g. "web,web.example.com".
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -57,6 +62,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -157,6 +163,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# collectstatic writes here (entrypoint.sh runs it before gunicorn starts);
+# WhiteNoise then serves everything under it directly from the Django
+# process — no separate nginx static-file mapping needed for /admin/'s
+# own CSS/JS.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 
 # Email
