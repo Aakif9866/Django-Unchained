@@ -1,0 +1,10 @@
+.dropzone { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: 2rem 1rem; text-align: center; cursor: pointer; border: 2px dashed var(--border-strong); border-radius: 24px 0; transition: border-color .15s, background-color .15s; }
+.dropzone .bi { font-size: 2rem; color: var(--app); }
+.dropzone:hover, .dropzone.is-over, .dropzone:focus-within { border-color: var(--app); background: color-mix(in srgb, var(--app) 6%, transparent); }
+#report { scroll-margin-top: 5rem; }
+.chart-box { position: relative; height: 260px; }
+.preview-table td, .preview-table th { white-space: nowrap; max-width: 18rem; overflow: hidden; text-overflow: ellipsis; font-size: .85rem; }
+.preview-table thead th { position: sticky; top: 0; background: var(--surface); }
+.is-null { color: var(--muted); font-style: italic; }
+.type-pill { font-size: .72rem; }
+.form-check-label { font-size: .875rem; cursor: pointer; min-height: 28px; display: inline-flex; align-items: center; }

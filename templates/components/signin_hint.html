@@ -1,0 +1,3 @@
+{% if not user.is_authenticated %}
+  <p class="signin-hint mb-0"><i class="bi bi-person-lock me-1"></i><a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a> or <a href="{% url 'accounts:register' %}?next={{ request.path|urlencode }}">create an account</a> {{ text }}</p>
+{% endif %}

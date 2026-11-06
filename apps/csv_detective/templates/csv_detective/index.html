@@ -1,0 +1,72 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}CSV Detective · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'csv_detective/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-emerald" id="csv-detective"
+     data-analyze-url="{% url 'csv_detective:analyze' %}" data-clean-url="{% url 'csv_detective:clean' %}"
+     data-sample-url="{% static 'csv_detective/sample-orders.csv' %}" data-max-mb="{{ max_mb }}">
+  {% include "components/app_header.html" %}
+
+  <label class="dropzone" id="dropzone" for="file-input">
+    <i class="bi bi-cloud-arrow-up"></i>
+    <strong>Drop a CSV here, or click to choose one</strong>
+    <span class="text-muted small">Up to {{ max_mb }} MB and {{ max_rows }} rows. No account needed. Files are parsed in memory and never stored.</span>
+    <input id="file-input" class="visually-hidden" type="file" accept=".csv,text/csv">
+  </label>
+  <div class="text-center mt-2"><button class="btn btn-sm btn-quiet" id="try-sample" type="button">Try it with a made-up orders file</button></div>
+  <div id="loading" class="text-center py-4" hidden><span class="sq-spinner"></span> <span class="text-muted">Investigating…</span></div>
+  <div id="upload-error" class="errorlist text-center mt-2" role="alert" hidden></div>
+
+  <div id="report" hidden>
+    <h2 class="section-heading"><i class="bi bi-file-earmark-text"></i> <span id="file-name"></span></h2>
+    <div class="stat-grid mb-3" id="headline"></div>
+
+    <div class="row g-3">
+      <div class="col-lg-5">
+        <section class="sq-panel h-100">
+          <h3 class="panel-title">Missing values by column</h3>
+          <div class="chart-box"><canvas id="missing-chart" role="img" aria-label="Missing values per column"></canvas></div>
+          <p id="no-missing" class="text-muted mb-0" hidden>No missing values anywhere.</p>
+        </section>
+      </div>
+      <div class="col-lg-7">
+        <section class="sq-panel h-100">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h3 class="panel-title mb-0">Column detail</h3>
+            <select id="column-select" class="form-select form-select-sm w-auto" aria-label="Choose a column"></select>
+          </div>
+          <div id="column-summary" class="stat-grid mb-2"></div>
+          <div class="chart-box"><canvas id="column-chart" role="img" aria-label="Distribution of the selected column"></canvas></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="sq-panel mt-3">
+      <h3 class="panel-title">Columns</h3>
+      <div class="scroll-x"><table class="table table-sm table-hover" id="columns-table"></table></div>
+    </section>
+
+    <section class="sq-panel mt-3">
+      <h3 class="panel-title">Preview <span id="preview-note" class="text-lowercase"></span></h3>
+      <div class="scroll-x max-h-30"><table class="table table-sm preview-table" id="preview-table"></table></div>
+    </section>
+
+    <section class="sq-panel mt-3">
+      <h3 class="panel-title">Clean and download</h3>
+      <form id="clean-form" class="d-flex flex-wrap gap-3 align-items-center">
+        <label class="form-check-label"><input class="form-check-input me-1" type="checkbox" name="drop_duplicates" checked>Remove duplicate rows</label>
+        <label class="form-check-label"><input class="form-check-input me-1" type="checkbox" name="drop_empty_rows" checked>Remove fully empty rows</label>
+        <label class="form-check-label"><input class="form-check-input me-1" type="checkbox" name="trim_whitespace" checked>Trim whitespace</label>
+        <label class="form-check-label"><input class="form-check-input me-1" type="checkbox" name="drop_rows_with_missing">Remove rows with any missing value</label>
+        <label class="form-check-label" title="Prefixes cells that start with = + - @ so spreadsheets won't run them as formulas"><input class="form-check-input me-1" type="checkbox" name="neutralize_formulas" checked>Neutralise spreadsheet formulas</label>
+        <button class="btn btn-cta ms-auto" type="submit"><i class="bi bi-download"></i> Download cleaned CSV</button>
+      </form>
+      <p class="small text-muted mt-2 mb-0" id="clean-result" aria-live="polite"></p>
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/chart.umd.min.js' %}"></script>
+<script src="{% static 'csv_detective/app.js' %}"></script>
+{% endblock %}

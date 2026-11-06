@@ -1,0 +1,89 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}FocusQuest · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'focusquest/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-teal" id="focus"
+     data-state-url="{% url 'focusquest:state' %}" data-start-url="{% url 'focusquest:start' %}" data-abandon-url="{% url 'focusquest:abandon' %}" data-complete-base="{% url 'focusquest:index' %}sessions/">
+  {% include "components/app_header.html" %}
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <section class="sq-panel text-center h-100">
+        <div class="d-flex justify-content-center flex-wrap gap-2 align-items-center mb-3">
+          <div class="btn-group" role="group" aria-label="Timer mode" id="modes">
+            <input class="btn-check" type="radio" name="mode" id="m-pomodoro" value="pomodoro" checked><label class="btn btn-quiet" for="m-pomodoro">25 / 5</label>
+            <input class="btn-check" type="radio" name="mode" id="m-deep" value="deep"><label class="btn btn-quiet" for="m-deep">50 / 10</label>
+            <input class="btn-check" type="radio" name="mode" id="m-custom" value="custom"><label class="btn btn-quiet" for="m-custom">Custom</label>
+          </div>
+        </div>
+        <div class="d-flex justify-content-center gap-2 mb-3" id="custom-fields" hidden>
+          <label class="small text-muted">Focus (min)<input id="custom-focus" class="form-control text-center" type="number" min="1" max="{{ max_minutes }}" value="30"></label>
+          <label class="small text-muted">Break (min)<input id="custom-break" class="form-control text-center" type="number" min="0" max="60" value="5"></label>
+        </div>
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="ring-track" cx="100" cy="100" r="90"></circle>
+            <circle class="ring-progress" id="ring" cx="100" cy="100" r="90"></circle>
+          </svg>
+          <div class="ring-label">
+            <div class="time" id="time" role="timer">25:00</div>
+            <div class="phase" id="phase">Ready to focus</div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
+          <button class="btn btn-cta btn-lg" id="start" type="button"><i class="bi bi-play-fill"></i> Start</button>
+          <button class="btn btn-quiet btn-lg" id="reset" type="button" disabled><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+        </div>
+        <button class="btn btn-sm btn-quiet mt-2" id="skip-break" type="button" hidden>Skip break</button>
+        <p class="small text-muted mt-3 mb-0">Earn {{ xp_per_minute }} XP per planned minute when a session finishes. Reset forfeits the session. The server checks that the time really passed, so XP can't be rushed.</p>
+      </section>
+    </div>
+    <div class="col-lg-7 d-flex flex-column gap-3">
+      {% if user.is_authenticated %}
+      <section class="sq-panel">
+        <div class="d-flex justify-content-between align-items-baseline mb-1">
+          <h2 class="h4 mb-0">Level <span id="level">1</span></h2>
+          <span class="small text-muted" id="xp-label"></span>
+        </div>
+        <div class="progress" role="progressbar" aria-label="Progress to next level" id="xp-bar-wrap"><div class="progress-bar" id="xp-bar"></div></div>
+        <div class="stat-grid mt-3">
+          <div class="stat"><div class="stat-value" id="s-streak">0</div><div class="stat-label">Day streak</div></div>
+          <div class="stat"><div class="stat-value" id="s-longest">0</div><div class="stat-label">Longest streak</div></div>
+          <div class="stat"><div class="stat-value" id="s-sessions">0</div><div class="stat-label">Sessions</div></div>
+          <div class="stat"><div class="stat-value" id="s-minutes">0</div><div class="stat-label">Focus minutes</div></div>
+        </div>
+      </section>
+      <section class="sq-panel">
+        <h2 class="panel-title">Last 7 days</h2>
+        <div class="chart-box"><canvas id="week-chart" role="img" aria-label="Focus minutes for each of the last seven days"></canvas></div>
+      </section>
+      {% else %}
+      <section class="sq-panel">
+        <h2 class="panel-title">Your progress</h2>
+        <div class="empty-state"><i class="bi bi-stars"></i><p>The timer works without an account. XP, levels, streaks and achievements need one.</p></div>
+        {% include "components/signin_hint.html" with text="to start earning." %}
+      </section>
+      {% endif %}
+    </div>
+  </div>
+  {% if user.is_authenticated %}
+  <div class="row g-3 mt-1">
+    <div class="col-lg-7">
+      <section class="sq-panel h-100">
+        <h2 class="panel-title">Achievements</h2>
+        <div class="achievement-grid" id="achievements"></div>
+      </section>
+    </div>
+    <div class="col-lg-5">
+      <section class="sq-panel h-100">
+        <h2 class="panel-title">Session history</h2>
+        <div id="history" class="max-h-20"><span class="sq-spinner"></span></div>
+      </section>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{% if user.is_authenticated %}<script src="{% static 'vendor/chart.umd.min.js' %}"></script>{% endif %}
+<script src="{% static 'focusquest/app.js' %}"></script>
+{% endblock %}

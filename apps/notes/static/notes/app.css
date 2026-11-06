@@ -1,0 +1,14 @@
+.notes-side, .notes-main { height: 34rem; display: flex; flex-direction: column; }
+.note-list { flex: 1; overflow-y: auto; min-height: 0; }
+.note-item { display: block; width: 100%; text-align: left; background: none; border: 0; border-left: 3px solid transparent; border-bottom: 1px solid var(--border); padding: .5rem .6rem; color: var(--text); transition: background-color .15s; }
+.note-item:hover { background: var(--surface-2); }
+.note-item.is-active { border-left-color: var(--app); background: var(--surface-2); }
+.note-item .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-item .snippet { font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-item .bi-pin-fill { color: var(--app); font-size: .75rem; margin-right: .25rem; }
+.note-title { flex: 1; min-width: 10rem; font-family: "Space Grotesk", sans-serif; font-size: 1.15rem; font-weight: 600; }
+.note-body { flex: 1; min-height: 0; resize: none; line-height: 1.6; }
+#pin[aria-pressed="true"] { color: var(--app); }
+.sq-modal { --bs-modal-bg: var(--surface-2); --bs-modal-border-color: var(--border-strong); --bs-modal-footer-border-color: var(--border); border-radius: 18px 0; }
+.flex-none { flex: none; }
+@media (max-width: 991.98px) { .notes-side { height: 18rem; } }

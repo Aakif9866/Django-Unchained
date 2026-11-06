@@ -1,0 +1,57 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Snake Arena · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'snake/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-lime" id="snake" data-board-url="{% url 'snake:board' %}" data-save-url="{% url 'snake:save_score' %}">
+  {% include "components/app_header.html" %}
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="snake-hud">
+        <div class="stat"><div class="stat-value" id="hud-score">0</div><div class="stat-label">Score</div></div>
+        <div class="stat"><div class="stat-value" id="hud-length">3</div><div class="stat-label">Length</div></div>
+        <div class="stat"><div class="stat-value" id="hud-speed">1</div><div class="stat-label">Speed</div></div>
+        <div class="stat flex-grow-1"><div class="stat-value" id="hud-effect">None</div><div class="stat-label">Power-up</div></div>
+      </div>
+      <div class="stage snake-stage">
+        <canvas id="board" width="720" height="720" aria-label="Snake game board" role="img"></canvas>
+        <div class="stage-overlay" id="overlay">
+          <h2 id="overlay-title">Ready?</h2>
+          <p class="mb-1 text-muted" id="overlay-text">Arrow keys or WASD to steer. Space to pause.</p>
+          <div class="btn-group" role="group" aria-label="Difficulty" id="difficulty">
+            {% for value, label in difficulties %}
+              <input class="btn-check" type="radio" name="difficulty" id="d-{{ value }}" value="{{ value }}" {% if value == "normal" %}checked{% endif %}>
+              <label class="btn btn-quiet" for="d-{{ value }}">{{ label }}</label>
+            {% endfor %}
+          </div>
+          <button class="btn btn-cta btn-lg" id="start" type="button">Start game</button>
+        </div>
+      </div>
+      {% include "components/dpad.html" %}
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <button class="btn btn-quiet" id="pause" type="button" disabled><i class="bi bi-pause-fill"></i> Pause</button>
+        <button class="btn btn-quiet" id="restart" type="button" disabled><i class="bi bi-arrow-clockwise"></i> Restart</button>
+      </div>
+    </div>
+    <div class="col-lg-4 d-flex flex-column gap-3">
+      <section class="sq-panel">
+        <h2 class="panel-title">Leaderboard · <span id="board-level">Normal</span></h2>
+        <div id="leaderboard" class="max-h-20"><span class="sq-spinner"></span></div>
+        <p class="text-muted small mt-2 mb-0" id="personal-best"></p>
+      </section>
+      <section class="sq-panel">
+        <h2 class="panel-title">Field guide</h2>
+        <ul class="legend">
+          <li><span class="swatch swatch-food"></span>Apple: points, and you grow</li>
+          <li><span class="swatch swatch-gold"></span>Gold apple: 50 bonus points</li>
+          <li><span class="swatch swatch-double"></span>Double points for 8 seconds</li>
+          <li><span class="swatch swatch-slow"></span>Slow motion for 6 seconds</li>
+          <li><span class="swatch swatch-ghost"></span>Ghost through obstacles for 6 seconds</li>
+          <li><span class="swatch swatch-rock"></span>Obstacle: avoid. More appear as you eat</li>
+        </ul>
+      </section>
+      {% include "components/signin_hint.html" with text="to put your scores on the leaderboard." %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'snake/app.js' %}"></script>{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Watch Roulette · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'watch_roulette/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-red" id="roulette" data-titles-url="{% url 'watch_roulette:titles' %}">
+  {% include "components/app_header.html" %}
+  <div class="row g-3">
+    <div class="col-lg-5 d-flex flex-column gap-3">
+      <section class="sq-panel text-center">
+        <div class="wheel-wrap">
+          <div class="wheel-pointer" aria-hidden="true"></div>
+          <canvas id="wheel" width="480" height="480" role="img" aria-label="Selection wheel"></canvas>
+        </div>
+        <div class="row g-2 mt-2 text-start">
+          <div class="col-6"><label class="small text-muted" for="f-genre">Genre</label><select id="f-genre" class="form-select form-select-sm"></select></div>
+          <div class="col-6"><label class="small text-muted" for="f-language">Language</label><select id="f-language" class="form-select form-select-sm"></select></div>
+          <div class="col-6"><label class="small text-muted" for="f-kind">Type</label><select id="f-kind" class="form-select form-select-sm"><option value="">Any</option><option value="movie">Movies</option><option value="series">Series</option></select></div>
+          <div class="col-6 d-flex flex-column justify-content-end small">
+            <label class="form-check-label"><input id="f-unwatched" class="form-check-input me-1" type="checkbox" checked>Skip watched</label>
+            <label class="form-check-label"><input id="f-favourites" class="form-check-input me-1" type="checkbox">Favourites only</label>
+          </div>
+        </div>
+        <button class="btn btn-cta btn-lg w-100 mt-3" id="spin" type="button"><i class="bi bi-arrow-repeat"></i> Spin the wheel</button>
+        <p class="small text-muted mt-2 mb-0" id="candidate-count" aria-live="polite"></p>
+        <div class="result" id="result" hidden aria-live="polite">
+          <div class="small text-muted">Tonight you're watching</div>
+          <div class="result-name" id="result-name"></div>
+          <div class="small text-muted" id="result-meta"></div>
+          <button class="btn btn-sm btn-sq mt-2" id="result-watched" type="button"><i class="bi bi-check2"></i> Mark as watched</button>
+        </div>
+      </section>
+    </div>
+    <div class="col-lg-7 d-flex flex-column gap-3">
+      <section class="sq-panel">
+        <h2 class="panel-title">Add a title</h2>
+        <form id="add-form" class="row g-2">
+          <div class="col-md-5"><input id="a-name" class="form-control" placeholder="Title" maxlength="200" required aria-label="Title"></div>
+          <div class="col-md-3 col-6"><input id="a-genre" class="form-control" placeholder="Genre" list="genre-options" maxlength="40" required aria-label="Genre"></div>
+          <div class="col-md-2 col-6"><input id="a-language" class="form-control" placeholder="Language" list="language-options" maxlength="40" required aria-label="Language"></div>
+          <div class="col-md-2 col-6"><select id="a-kind" class="form-select" aria-label="Type"><option value="movie">Movie</option><option value="series">Series</option></select></div>
+          <div class="col-md-3 col-6"><select id="a-rating" class="form-select" aria-label="Your rating"><option value="">No rating</option></select></div>
+          <div class="col-md-3 d-flex align-items-center"><label class="form-check-label small"><input id="a-watched" class="form-check-input me-1" type="checkbox">Already watched</label></div>
+          <div class="col-md-6 text-md-end"><button class="btn btn-sq w-100 w-md-auto" type="submit"><i class="bi bi-plus-lg"></i> Add</button></div>
+        </form>
+        <datalist id="genre-options"></datalist><datalist id="language-options"></datalist>
+        {% if not user.is_authenticated %}<div class="mt-2">{% include "components/signin_hint.html" with text="to keep your list. Without an account it lasts until you leave this page." %}</div>{% endif %}
+      </section>
+      <section class="sq-panel">
+        <ul class="nav nav-underline mb-2" id="list-tabs">
+          <li class="nav-item"><button class="nav-link active" type="button" data-list="watchlist">Watchlist <span class="sq-badge" id="n-watchlist">0</span></button></li>
+          <li class="nav-item"><button class="nav-link" type="button" data-list="history">Watch history <span class="sq-badge" id="n-history">0</span></button></li>
+          <li class="nav-item"><button class="nav-link" type="button" data-list="favourites">Favourites <span class="sq-badge" id="n-favourites">0</span></button></li>
+        </ul>
+        <div id="title-list" class="max-h-30"><span class="sq-spinner"></span></div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'watch_roulette/app.js' %}"></script>{% endblock %}

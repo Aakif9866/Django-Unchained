@@ -1,0 +1,8 @@
+.snake-hud { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .6rem; }
+.snake-hud .stat { min-width: 84px; }
+.snake-stage { max-width: max(300px, min(640px, 100vh - 19rem)); margin-inline: auto; }
+.legend { list-style: none; padding: 0; margin: 0; font-size: .875rem; }
+.legend li { display: flex; align-items: center; gap: .6rem; padding: .25rem 0; }
+.swatch { width: 14px; height: 14px; flex: none; border-radius: 4px 0; }
+.swatch-food { background: #f87171; } .swatch-gold { background: #fbbf24; } .swatch-double { background: #e879f9; }
+.swatch-slow { background: #38bdf8; } .swatch-ghost { background: #d4d4d4; } .swatch-rock { background: #737373; }

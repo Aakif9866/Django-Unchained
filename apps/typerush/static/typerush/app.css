@@ -1,0 +1,11 @@
+.type-box { position: relative; cursor: text; transition: border-color .15s; }
+.type-box:focus-within { border-color: var(--app); }
+.type-text { height: 11.5rem; overflow: hidden; font-size: 1.15rem; line-height: 1.9rem; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); }
+.type-text .ok { color: var(--heading); }
+.type-text .bad { color: var(--danger); background: color-mix(in srgb, var(--danger) 18%, transparent); border-radius: 3px; }
+.type-text .cur { box-shadow: -2px 0 0 var(--app); }
+.type-text .nl { opacity: .5; }
+.type-capture { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; resize: none; border: 0; padding: 0; cursor: text; }
+.type-hint { margin-top: .5rem; font-size: .85rem; color: var(--muted); }
+.chart-box { position: relative; height: 240px; }
+kbd { background: var(--surface-2); color: var(--muted); font-size: .7rem; border: 1px solid var(--border-strong); }

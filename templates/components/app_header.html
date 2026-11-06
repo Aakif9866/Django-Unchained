@@ -1,0 +1,10 @@
+<header class="app-header">
+  <span class="app-tile"><i class="bi bi-{{ current_app.icon }}"></i></span>
+  <div class="flex-grow-1">
+    <h1>{{ current_app.name }}</h1>
+    <p>{{ current_app.description }}</p>
+  </div>
+  {% if user.is_authenticated %}
+    <button class="btn btn-quiet" type="button" data-favourite-url="{% url 'core:favourite_toggle' current_app.slug %}" aria-pressed="{% if is_favourite %}true{% else %}false{% endif %}" aria-label="Favourite {{ current_app.name }}"><i class="bi bi-star{% if is_favourite %}-fill{% endif %}"></i></button>
+  {% endif %}
+</header>

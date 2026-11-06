@@ -1,0 +1,63 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Regex Playground · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'regex_playground/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-pink" id="regex" data-worker-url="{% static 'regex_playground/regex-worker.js' %}" data-patterns-url="{% url 'regex_playground:patterns' %}">
+  {% include "components/app_header.html" %}
+  <p class="signin-hint"><i class="bi bi-info-circle me-1"></i>This uses your browser's <strong>JavaScript (ECMAScript) regex engine</strong>. Syntax differs from Python or PCRE in places: no <code>(?i)</code> inline flags or possessive quantifiers, for example.</p>
+  <div class="row g-3">
+    <div class="col-lg-8 d-flex flex-column gap-3">
+      <section class="sq-panel">
+        <label class="panel-title d-block" for="pattern">Pattern</label>
+        <div class="input-group regex-input mono">
+          <span class="input-group-text">/</span>
+          <input id="pattern" class="form-control mono" spellcheck="false" autocomplete="off" placeholder="\b\w+@\w+\.\w+\b" maxlength="2000">
+          <span class="input-group-text">/<span id="flags-preview">g</span></span>
+        </div>
+        <div class="d-flex flex-wrap gap-3 mt-2" id="flags">
+          <label class="form-check-label" title="Find all matches, not just the first"><input class="form-check-input me-1" type="checkbox" value="g" checked>g <span class="text-muted">global</span></label>
+          <label class="form-check-label" title="Case-insensitive"><input class="form-check-input me-1" type="checkbox" value="i">i <span class="text-muted">ignore case</span></label>
+          <label class="form-check-label" title="^ and $ match at line breaks"><input class="form-check-input me-1" type="checkbox" value="m">m <span class="text-muted">multiline</span></label>
+          <label class="form-check-label" title="Dot matches newlines"><input class="form-check-input me-1" type="checkbox" value="s">s <span class="text-muted">dotall</span></label>
+          <label class="form-check-label" title="Unicode mode"><input class="form-check-input me-1" type="checkbox" value="u">u <span class="text-muted">unicode</span></label>
+          <label class="form-check-label" title="Match only at lastIndex"><input class="form-check-input me-1" type="checkbox" value="y">y <span class="text-muted">sticky</span></label>
+        </div>
+        <div id="regex-error" class="errorlist mt-2" role="alert" hidden></div>
+      </section>
+      <section class="sq-panel">
+        <div class="d-flex justify-content-between align-items-baseline">
+          <label class="panel-title" for="test-text">Test text</label>
+          <span class="small text-muted" id="match-count" aria-live="polite">No pattern yet</span>
+        </div>
+        <div class="hl-wrap mono">
+          <div class="hl-backdrop" id="backdrop" aria-hidden="true"></div>
+          <textarea id="test-text" class="hl-input" spellcheck="false" rows="9" maxlength="200000" aria-label="Test text"></textarea>
+        </div>
+      </section>
+      <section class="sq-panel">
+        <h2 class="panel-title">Matches</h2>
+        <div id="matches" class="max-h-20 scroll-x"></div>
+      </section>
+    </div>
+    <div class="col-lg-4 d-flex flex-column gap-3">
+      <section class="sq-panel">
+        <h2 class="panel-title">Common patterns</h2>
+        <div id="examples" class="d-flex flex-column gap-1"></div>
+      </section>
+      <section class="sq-panel">
+        <h2 class="panel-title">Saved patterns</h2>
+        {% if user.is_authenticated %}
+          <form id="save-form" class="input-group mb-2">
+            <input id="save-name" class="form-control" placeholder="Name this pattern" maxlength="80" aria-label="Pattern name" required>
+            <button class="btn btn-sq" type="submit">Save</button>
+          </form>
+          <div id="saved" class="max-h-20"><span class="sq-spinner"></span></div>
+        {% else %}
+          {% include "components/signin_hint.html" with text="to save favourite patterns." %}
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'regex_playground/app.js' %}"></script>{% endblock %}

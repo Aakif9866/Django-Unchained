@@ -1,0 +1,14 @@
+.wheel-wrap { position: relative; width: min(340px, 78vw); margin-inline: auto; }
+.wheel-wrap canvas { display: block; width: 100%; height: auto; }
+.wheel-pointer { position: absolute; z-index: 1; top: -2px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 11px solid transparent; border-right: 11px solid transparent; border-top: 20px solid var(--heading); }
+.result { margin-top: .9rem; padding: .85rem; border: 1px solid var(--app); border-radius: 16px 0; animation: reveal .3s ease-out; }
+.result-name { font-family: "Space Grotesk", sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--heading); overflow-wrap: anywhere; }
+.nav-underline { --bs-nav-underline-link-active-color: var(--app); --bs-nav-link-color: var(--muted); --bs-nav-link-hover-color: var(--text); }
+.title-row { display: flex; align-items: center; gap: .35rem; padding: .35rem 0; border-bottom: 1px solid var(--border); }
+.title-row:last-child { border-bottom: 0; }
+.title-info { flex: 1; min-width: 0; }
+.title-name { font-weight: 500; overflow-wrap: anywhere; }
+.title-meta { font-size: .78rem; color: var(--muted); }
+.title-row .form-select { width: 5.6rem; flex: none; }
+.icon-btn.is-on { color: var(--warn); }
+.icon-btn.is-done { color: var(--success); }

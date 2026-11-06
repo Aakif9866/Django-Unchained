@@ -1,0 +1,21 @@
+.regex-input .input-group-text { background: var(--surface-2); border-color: var(--border-strong); color: var(--muted); }
+#flags .form-check-label { font-size: .875rem; min-height: 28px; display: inline-flex; align-items: center; font-family: "JetBrains Mono", monospace; cursor: pointer; }
+#flags .text-muted { font-family: "Inter", sans-serif; font-size: .75rem; margin-left: .3rem; }
+
+/* The backdrop paints highlights behind a transparent textarea with identical metrics. */
+.hl-wrap { position: relative; font-size: .875rem; line-height: 1.55; border: 1px solid var(--border-strong); border-radius: 10px 0; background: var(--surface-2); }
+.hl-wrap:focus-within { border-color: var(--accent); }
+.hl-backdrop, .hl-input { padding: .6rem .75rem; margin: 0; width: 100%; height: 15rem; white-space: pre-wrap; overflow-wrap: break-word; font: inherit; overflow-y: auto; border: 0; }
+.hl-backdrop { position: absolute; inset: 0; color: transparent; pointer-events: none; }
+.hl-input { position: relative; display: block; background: transparent; color: var(--text); resize: none; outline: 0; caret-color: var(--heading); }
+.hl-backdrop mark { color: transparent; padding: 0; border-radius: 3px; background: color-mix(in srgb, var(--app) 35%, transparent); }
+.hl-backdrop mark:nth-of-type(even) { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+.example-btn { display: flex; justify-content: space-between; width: 100%; text-align: left; padding: .4rem .6rem; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 8px 0; font-size: .875rem; min-height: 40px; align-items: center; transition: border-color .15s, color .15s; }
+.example-btn:hover { border-color: var(--app); color: var(--app); }
+.saved-row { display: flex; align-items: center; gap: .25rem; border-bottom: 1px solid var(--border); }
+.saved-row:last-child { border-bottom: 0; }
+.saved-row button.load { flex: 1; min-width: 0; text-align: left; background: none; border: 0; color: var(--text); padding: .4rem 0; }
+.saved-row small { display: block; color: var(--muted); font-family: "JetBrains Mono", monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.group-chip { display: inline-block; margin: 0 .25rem .15rem 0; padding: 0 .4rem; background: var(--surface-2); border-radius: 5px 0; font-size: .78rem; }
+.group-chip b { color: var(--muted); font-weight: 500; margin-right: .25rem; }

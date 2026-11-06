@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · SIDEQUEST{% endblock %}
+{% block content %}
+<div class="container-xl">
+  <header class="pt-4 pb-2">
+    <h1 class="h2">Welcome back, {{ user.shown_name }}</h1>
+    <p class="text-muted mb-0">Everything here comes from what you've actually done across SIDEQUEST.</p>
+  </header>
+  <div class="row g-3 mt-1">
+    <div class="col-md-6">
+      <div class="sq-panel h-100">
+        <h2 class="panel-title">Favourites</h2>
+        {% if favourite_apps %}<div class="chip-row">{% for app in favourite_apps %}{% include "components/app_chip.html" %}{% endfor %}</div>
+        {% else %}<p class="text-muted mb-0">Nothing yet. Star an app on the <a href="{% url 'core:home' %}">homepage</a>.</p>{% endif %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="sq-panel h-100">
+        <h2 class="panel-title">Recently used</h2>
+        {% if recent %}<div class="chip-row">{% for app in recent %}{% include "components/app_chip.html" %}{% endfor %}</div>
+        {% else %}<p class="text-muted mb-0">You haven't opened an app yet.</p>{% endif %}
+      </div>
+    </div>
+  </div>
+  <h2 class="section-heading">Your numbers</h2>
+  <div class="app-grid">
+    {% for entry in app_stats %}
+      <section class="sq-panel accent-{{ entry.app.accent }}">
+        <a class="d-flex align-items-center gap-2 mb-3 text-decoration-none" href="{% url entry.app.slug|add:':index' %}">
+          <span class="app-tile"><i class="bi bi-{{ entry.app.icon }}"></i></span>
+          <span class="display-font fw-semibold">{{ entry.app.name }}</span>
+        </a>
+        <div class="stat-grid">
+          {% for label, value in entry.stats %}<div class="stat"><div class="stat-value">{{ value }}</div><div class="stat-label">{{ label }}</div></div>{% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

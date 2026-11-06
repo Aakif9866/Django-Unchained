@@ -1,0 +1,43 @@
+<nav class="navbar navbar-expand-lg sticky-top sq-nav" aria-label="Main">
+  <div class="container-xl">
+    <a class="navbar-brand brand-mark" href="{% url 'core:home' %}">SIDEQUEST</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-links" aria-controls="nav-links" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="nav-links">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle{% if current_app %} active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Apps</a>
+          <ul class="dropdown-menu">
+            {% for category, apps in nav_categories %}
+              <li><h6 class="dropdown-header">{{ category }}</h6></li>
+              {% for app in apps %}
+                <li><a class="dropdown-item" href="{% url app.slug|add:':index' %}"><i class="bi bi-{{ app.icon }} me-2"></i>{{ app.name }}</a></li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </li>
+        {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        {% endif %}
+      </ul>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button id="theme-toggle" class="icon-btn" type="button"><i class="bi bi-sun"></i></button>
+        {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="btn btn-quiet dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">{{ user.shown_name }}</button>
+            <ul class="dropdown-menu dropdown-menu-lg-end">
+              <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
+              <li><a class="dropdown-item" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="dropdown-item" type="submit">Sign out</button></form></li>
+            </ul>
+          </div>
+        {% else %}
+          <a class="btn btn-quiet" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a>
+          <a class="btn btn-sq" href="{% url 'accounts:register' %}?next={{ request.path|urlencode }}">Create account</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>

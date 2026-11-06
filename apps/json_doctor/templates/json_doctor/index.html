@@ -1,0 +1,62 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}JSON Doctor · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'json_doctor/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-sky" id="json-doctor">
+  {% include "components/app_header.html" %}
+  <div class="d-flex flex-wrap gap-2 mb-2" role="toolbar" aria-label="JSON actions">
+    <button class="btn btn-cta" id="format" type="button"><i class="bi bi-text-indent-left"></i> Format</button>
+    <button class="btn btn-sq" id="minify" type="button"><i class="bi bi-arrows-collapse"></i> Minify</button>
+    <button class="btn btn-sq" id="validate" type="button"><i class="bi bi-check2-circle"></i> Validate</button>
+    <select id="indent" class="form-select w-auto" aria-label="Indent size"><option value="2">2 spaces</option><option value="4">4 spaces</option><option value="tab">Tabs</option></select>
+    <span class="vr"></span>
+    <button class="btn btn-quiet" id="copy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+    <button class="btn btn-quiet" id="download" type="button"><i class="bi bi-download"></i> Download</button>
+    <button class="btn btn-quiet" id="sample" type="button">Sample</button>
+    <button class="btn btn-quiet" id="clear" type="button">Clear</button>
+  </div>
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <section class="sq-panel doc-panel">
+        <div class="status-bar" id="status" role="status"></div>
+        <div class="editor mono">
+          <div class="gutter" id="gutter" aria-hidden="true"></div>
+          <textarea id="editor" spellcheck="false" wrap="off" aria-label="JSON input" placeholder="Paste JSON here"></textarea>
+        </div>
+      </section>
+    </div>
+    <div class="col-lg-6">
+      <section class="sq-panel doc-panel">
+        <ul class="nav nav-underline mb-2" role="tablist">
+          <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-tree" type="button" role="tab">Tree</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-csv" type="button" role="tab">CSV</button></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="tab-tree" role="tabpanel">
+            <div class="d-flex gap-2 mb-2">
+              <button class="btn btn-sm btn-quiet" id="expand" type="button">Expand all</button>
+              <button class="btn btn-sm btn-quiet" id="collapse" type="button">Collapse all</button>
+            </div>
+            <div id="tree" class="tree mono"></div>
+          </div>
+          <div class="tab-pane fade" id="tab-csv" role="tabpanel">
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <button class="btn btn-sm btn-sq" id="to-csv" type="button"><i class="bi bi-arrow-right"></i> JSON to CSV</button>
+              <button class="btn btn-sm btn-sq" id="from-csv" type="button"><i class="bi bi-arrow-left"></i> CSV to JSON</button>
+              <button class="btn btn-sm btn-quiet" id="copy-csv" type="button">Copy</button>
+              <button class="btn btn-sm btn-quiet" id="download-csv" type="button">Download .csv</button>
+            </div>
+            <p class="small text-muted mb-2">Nested objects flatten to dotted columns like <code>user.name</code>. Arrays stay as JSON text.</p>
+            <textarea id="csv" class="form-control mono csv-area" spellcheck="false" wrap="off" aria-label="CSV" placeholder="Convert from the JSON on the left, or paste CSV here and press CSV to JSON."></textarea>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <p class="small text-muted mt-2 mb-0"><i class="bi bi-shield-check me-1"></i>Runs entirely in your browser. Nothing you paste here is sent to the server.</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'json_doctor/json-core.js' %}"></script>
+<script src="{% static 'json_doctor/app.js' %}"></script>
+{% endblock %}

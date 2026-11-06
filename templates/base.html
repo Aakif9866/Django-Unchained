@@ -1,0 +1,33 @@
+{% load static %}<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="description" content="SIDEQUEST: small tools, big distractions. Eleven little games and utilities in one place.">
+  <title>{% block title %}SIDEQUEST{% endblock %}</title>
+  <script src="{% static 'js/theme-init.js' %}"></script>
+  <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/sidequest.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body data-auth="{{ user.is_authenticated|yesno:'1,0' }}" data-login-url="{% url 'accounts:login' %}"{% if user.is_authenticated %} data-username="{{ user.username }}"{% endif %}>
+  <a class="visually-hidden-focusable" href="#main">Skip to content</a>
+  <div class="top-strip"></div>
+  {% include "components/navbar.html" %}
+  <main id="main">{% block content %}{% endblock %}</main>
+  <footer class="sq-footer">
+    <div class="container-xl d-flex flex-wrap justify-content-between gap-2">
+      <span>SIDEQUEST. Small tools. Big distractions.</span>
+      <a href="{% url 'core:home' %}">All apps</a>
+    </div>
+  </footer>
+  <div id="toasts" class="toast-stack" aria-live="polite"></div>
+  {% if messages %}<script id="django-messages" type="application/json">[{% for m in messages %}["{{ m|escapejs }}","{{ m.tags|escapejs }}"]{% if not forloop.last %},{% endif %}{% endfor %}]</script>{% endif %}
+  <script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'js/sidequest.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

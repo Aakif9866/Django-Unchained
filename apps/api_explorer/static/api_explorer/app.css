@@ -1,0 +1,15 @@
+.request-line { display: flex; flex-wrap: wrap; gap: .5rem; }
+.request-line select { flex: 0 0 7.5rem; }
+.request-line input { flex: 1 1 14rem; }
+.pair-row { display: flex; gap: .4rem; margin-bottom: .4rem; align-items: center; }
+.pair-row input { flex: 1; min-width: 0; font-size: .85rem; }
+.nav-underline { --bs-nav-underline-link-active-color: var(--app); --bs-nav-link-color: var(--muted); --bs-nav-link-hover-color: var(--text); }
+.list-row { display: flex; align-items: center; gap: .3rem; border-bottom: 1px solid var(--border); }
+.list-row:last-child { border-bottom: 0; }
+.list-row .load { flex: 1; min-width: 0; text-align: left; background: none; border: 0; color: var(--text); padding: .4rem 0; font-size: .85rem; }
+.list-row small { display: block; color: var(--muted); font-family: "JetBrains Mono", monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.method-tag { font-family: "JetBrains Mono", monospace; font-size: .72rem; font-weight: 700; color: var(--app); margin-right: .35rem; }
+.status-2 { color: var(--success); border-color: var(--success); } .status-3 { color: var(--accent); border-color: var(--accent); }
+.status-4 { color: var(--warn); border-color: var(--warn); } .status-5, .status-0 { color: var(--danger); border-color: var(--danger); }
+#res-headers td:first-child { color: var(--app); white-space: nowrap; }
+#res-headers td { font-size: .8rem; overflow-wrap: anywhere; }

@@ -1,0 +1,20 @@
+.doc-panel { height: 100%; display: flex; flex-direction: column; }
+.status-bar { font-size: .875rem; margin-bottom: .6rem; min-height: 1.5rem; }
+.status-bar.is-ok { color: var(--success); }
+.status-bar.is-bad { color: var(--danger); }
+.status-bar button { background: none; border: 0; color: inherit; text-decoration: underline; padding: 0; text-underline-offset: 3px; }
+.editor { display: flex; height: 30rem; font-size: .85rem; line-height: 1.5; border: 1px solid var(--border-strong); border-radius: 10px 0; overflow: hidden; background: var(--surface-2); }
+.editor:focus-within { border-color: var(--accent); }
+.gutter { flex: none; min-width: 3rem; padding: .5rem .5rem .5rem 0; text-align: right; color: var(--muted); background: var(--surface); overflow: hidden; user-select: none; border-right: 1px solid var(--border); }
+.gutter .is-error { color: var(--bg); background: var(--danger); font-weight: 700; }
+#editor { flex: 1; min-width: 0; padding: .5rem .6rem; border: 0; outline: 0; resize: none; background: transparent; color: var(--text); line-height: inherit; font: inherit; white-space: pre; overflow: auto; }
+.tree { height: 26.5rem; overflow: auto; font-size: .85rem; line-height: 1.6; }
+.tree details { margin-left: 1rem; }
+.tree > details { margin-left: 0; }
+.tree summary { cursor: pointer; list-style-position: outside; }
+.tree .leaf { margin-left: 1rem; overflow-wrap: anywhere; }
+.tree .k { color: var(--app); }
+.tree .s { color: var(--success); } .tree .n { color: var(--warn); } .tree .b { color: var(--accent); } .tree .z { color: var(--muted); }
+.tree .meta { color: var(--muted); font-size: .78rem; margin-left: .35rem; }
+.csv-area { height: 22rem; white-space: pre; resize: none; }
+.nav-underline { --bs-nav-underline-link-active-color: var(--app); --bs-nav-link-color: var(--muted); --bs-nav-link-hover-color: var(--text); }

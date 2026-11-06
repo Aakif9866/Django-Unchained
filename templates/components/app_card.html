@@ -1,0 +1,14 @@
+<article class="app-card reveal accent-{{ app.accent }}" data-search="{{ app.name|lower }} {{ app.description|lower }} {{ app.category|lower }}">
+  <span class="app-tile"><i class="bi bi-{{ app.icon }}"></i></span>
+  {% if user.is_authenticated %}
+    <button class="icon-btn fav-btn" type="button" data-favourite-url="{% url 'core:favourite_toggle' app.slug %}" aria-pressed="{% if app.slug in favourite_slugs %}true{% else %}false{% endif %}" aria-label="Favourite {{ app.name }}">
+      <i class="bi bi-star{% if app.slug in favourite_slugs %}-fill{% endif %}"></i>
+    </button>
+  {% else %}
+    <a class="icon-btn fav-btn" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" title="Sign in to save favourites" aria-label="Sign in to favourite {{ app.name }}"><i class="bi bi-star"></i></a>
+  {% endif %}
+  <h3>{{ app.name }}</h3>
+  <p>{{ app.description }}</p>
+  <div class="app-spacer"></div>
+  <a class="app-launch" href="{% url app.slug|add:':index' %}" aria-label="Launch {{ app.name }}">Launch <i class="bi bi-arrow-right"></i></a>
+</article>

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Lost · SIDEQUEST{% endblock %}
+{% block content %}
+<div class="container-xl lost">
+  <div class="lost-code">404</div>
+  <h1 class="h3 mt-2">This quest doesn't exist</h1>
+  <p class="text-muted">The page you're after has wandered off the map.</p>
+  <a class="btn btn-cta" href="{% url 'core:home' %}">Back to all apps</a>
+</div>
+{% endblock %}

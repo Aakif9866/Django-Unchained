@@ -1,0 +1,52 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Maze Runner · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'maze_runner/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-orange" id="maze" data-board-url="{% url 'maze_runner:board' %}" data-save-url="{% url 'maze_runner:save_run' %}">
+  {% include "components/app_header.html" %}
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+        <div class="btn-group" role="group" aria-label="Difficulty" id="difficulty">
+          {% for value, label in difficulties %}
+            <input class="btn-check" type="radio" name="difficulty" id="d-{{ value }}" value="{{ value }}" {% if forloop.first %}checked{% endif %}>
+            <label class="btn btn-quiet" for="d-{{ value }}">{{ label }}</label>
+          {% endfor %}
+        </div>
+        <button class="btn btn-sq" id="new-maze" type="button"><i class="bi bi-shuffle"></i> New maze</button>
+        <button class="btn btn-quiet" id="restart" type="button"><i class="bi bi-arrow-counterclockwise"></i> Restart</button>
+        <button class="btn btn-quiet" id="solve" type="button"><i class="bi bi-signpost"></i> Show path</button>
+      </div>
+      <div class="stat-grid mb-2">
+        <div class="stat"><div class="stat-value" id="hud-time">0.0s</div><div class="stat-label">Time</div></div>
+        <div class="stat"><div class="stat-value" id="hud-moves">0</div><div class="stat-label">Moves</div></div>
+        <div class="stat"><div class="stat-value" id="hud-optimal">?</div><div class="stat-label">Shortest possible</div></div>
+      </div>
+      <div class="stage maze-stage">
+        <canvas id="board" width="720" height="720" role="img" aria-label="Maze. Use the arrow keys to move from the top-left corner to the bottom-right corner."></canvas>
+        <div class="stage-overlay" id="overlay" hidden>
+          <h2 id="overlay-title"></h2>
+          <p class="mb-1" id="overlay-text"></p>
+          <button class="btn btn-cta" id="next-maze" type="button">Next maze</button>
+        </div>
+      </div>
+      {% include "components/dpad.html" %}
+      <p class="text-muted small mt-2 mb-0">Arrow keys or WASD to move. The clock starts on your first move. Runs that use Show path count as practice and aren't saved.</p>
+    </div>
+    <div class="col-lg-4 d-flex flex-column gap-3">
+      <section class="sq-panel">
+        <h2 class="panel-title">Fastest · <span id="board-level">Easy</span></h2>
+        <div id="leaderboard" class="max-h-20"><span class="sq-spinner"></span></div>
+      </section>
+      <section class="sq-panel">
+        <h2 class="panel-title">Your recent runs</h2>
+        <div id="history">{% include "components/signin_hint.html" with text="to save your runs." %}</div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'maze_runner/maze-core.js' %}"></script>
+<script src="{% static 'maze_runner/app.js' %}"></script>
+{% endblock %}

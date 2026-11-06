@@ -1,0 +1,102 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}API Explorer · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'api_explorer/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-indigo" id="explorer" data-send-url="{% url 'api_explorer:send' %}" data-history-url="{% url 'api_explorer:history' %}" data-saved-url="{% url 'api_explorer:saved' %}">
+  {% include "components/app_header.html" %}
+  <div class="row g-3">
+    <div class="col-lg-8 d-flex flex-column gap-3">
+      <section class="sq-panel">
+        <form id="request-form" class="request-line">
+          <select id="method" class="form-select mono" aria-label="HTTP method">
+            {% for m in methods %}<option>{{ m }}</option>{% endfor %}
+          </select>
+          <input id="url" class="form-control mono" type="text" placeholder="https://httpbin.org/get" aria-label="Request URL" maxlength="2048" required spellcheck="false" autocomplete="off">
+          <button class="btn btn-cta" id="send" type="submit"><i class="bi bi-send"></i> Send</button>
+        </form>
+        <ul class="nav nav-underline mt-2" role="tablist">
+          <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-params" type="button" role="tab">Params</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-headers" type="button" role="tab">Headers</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-body" type="button" role="tab">Body</button></li>
+        </ul>
+        <div class="tab-content pt-2">
+          <div class="tab-pane fade show active" id="tab-params" role="tabpanel">
+            <div id="params" class="pair-list"></div>
+            <button class="btn btn-sm btn-quiet mt-2" type="button" id="add-param"><i class="bi bi-plus"></i> Add parameter</button>
+          </div>
+          <div class="tab-pane fade" id="tab-headers" role="tabpanel">
+            <div id="headers" class="pair-list"></div>
+            <button class="btn btn-sm btn-quiet mt-2" type="button" id="add-header"><i class="bi bi-plus"></i> Add header</button>
+          </div>
+          <div class="tab-pane fade" id="tab-body" role="tabpanel">
+            <textarea id="body" class="form-control mono" rows="7" spellcheck="false" placeholder='{"hello": "world"}' aria-label="JSON request body"></textarea>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <button class="btn btn-sm btn-quiet" type="button" id="format-body">Format JSON</button>
+              <span class="small" id="body-status"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sq-panel" aria-live="polite">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+          <h2 class="panel-title mb-0">Response</h2>
+          <span id="res-status" class="sq-badge" hidden></span>
+          <span id="res-time" class="small text-muted"></span>
+          <span id="res-size" class="small text-muted"></span>
+          <button class="btn btn-sm btn-quiet ms-auto" id="copy-response" type="button" hidden>Copy</button>
+        </div>
+        <div id="res-note" class="small text-muted mb-2" hidden></div>
+        <div id="res-empty"></div>
+        <div id="res-tabs" hidden>
+          <ul class="nav nav-underline mb-2" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="pretty-tab" data-bs-toggle="tab" data-bs-target="#res-pretty-pane" type="button" role="tab">Pretty</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#res-raw-pane" type="button" role="tab">Raw</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#res-headers-pane" type="button" role="tab">Headers <span id="res-header-count" class="sq-badge"></span></button></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="res-pretty-pane" role="tabpanel"><pre id="res-pretty" class="pre-output mono max-h-30"></pre></div>
+            <div class="tab-pane fade" id="res-raw-pane" role="tabpanel"><pre id="res-raw" class="pre-output mono max-h-30"></pre></div>
+            <div class="tab-pane fade" id="res-headers-pane" role="tabpanel"><div class="max-h-30 scroll-x"><table class="table table-sm mono" id="res-headers"></table></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-lg-4 d-flex flex-column gap-3">
+      <section class="sq-panel">
+        <h2 class="panel-title">Saved requests</h2>
+        {% if user.is_authenticated %}
+          <form id="save-form" class="input-group mb-2">
+            <input id="save-name" class="form-control" placeholder="Name this request" maxlength="80" aria-label="Request name" required>
+            <button class="btn btn-sq" type="submit">Save</button>
+          </form>
+          <p class="small text-muted">Saved requests keep their headers. Avoid saving real tokens.</p>
+          <div id="saved" class="max-h-20"><span class="sq-spinner"></span></div>
+        {% else %}
+          {% include "components/signin_hint.html" with text="to save requests and keep a history." %}
+        {% endif %}
+      </section>
+      {% if user.is_authenticated %}
+      <section class="sq-panel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 class="panel-title mb-0">History</h2>
+          <button class="btn btn-sm btn-quiet" id="clear-history" type="button">Clear</button>
+        </div>
+        <div id="history" class="max-h-20"><span class="sq-spinner"></span></div>
+      </section>
+      {% endif %}
+      <section class="sq-panel">
+        <h2 class="panel-title"><i class="bi bi-shield-lock me-1"></i>Sandbox rules</h2>
+        <ul class="small text-muted mb-0 ps-3">
+          <li>Public internet only: private, loopback and cloud metadata addresses are blocked</li>
+          <li>Redirects are re-checked at every hop</li>
+          <li>{{ timeout }} second limit and {{ max_mb }} MB response cap</li>
+          <li>Ports 80, 443, 8000, 8080 and 8443 only</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'api_explorer/app.js' %}"></script>{% endblock %}

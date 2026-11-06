@@ -1,0 +1,24 @@
+.ring-wrap { position: relative; width: min(280px, 72vw); aspect-ratio: 1; margin-inline: auto; }
+.ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 9; }
+.ring-track { stroke: var(--surface-2); }
+.ring-progress { stroke: var(--app); stroke-linecap: round; transition: stroke-dashoffset .3s linear, stroke .3s; }
+#focus.is-break .ring-progress { stroke: var(--warn); }
+.ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.time { font-family: "Space Grotesk", sans-serif; font-size: 3.4rem; font-weight: 700; color: var(--heading); font-variant-numeric: tabular-nums; line-height: 1; }
+.phase { color: var(--muted); font-size: .9rem; margin-top: .4rem; }
+.chart-box { position: relative; height: 180px; }
+.progress { --bs-progress-bg: var(--surface-2); --bs-progress-height: .6rem; border-radius: 6px 0; }
+.progress-bar { background: var(--app); transition: width .4s ease-out; }
+.achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: .6rem; }
+.achievement { display: flex; gap: .6rem; align-items: center; padding: .6rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px 0; }
+.achievement .bi { font-size: 1.3rem; color: var(--muted); }
+.achievement strong { display: block; font-size: .85rem; color: var(--muted); }
+.achievement small { color: var(--muted); font-size: .72rem; line-height: 1.25; display: block; }
+.achievement.is-unlocked { border-color: var(--app); }
+.achievement.is-unlocked .bi { color: var(--app); }
+.achievement.is-unlocked strong { color: var(--heading); }
+.session-row { display: flex; justify-content: space-between; gap: .5rem; padding: .35rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+.session-row:last-child { border-bottom: 0; }
+.ring-wrap .form-control { max-width: 6rem; }
+#custom-fields input { width: 6rem; }

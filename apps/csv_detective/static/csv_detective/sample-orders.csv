@@ -1,0 +1,21 @@
+order_id,customer,city,order_date,items,total,coupon
+1001,Maya Rao,Pune,2026-01-04,2,48.50,WELCOME
+1002,Leo Park,Seoul,2026-01-05,1,19.99,
+1003,Sofia Costa,Lisbon,2026-01-05,5,132.00,SPRING
+1004,  Omar Haddad ,Cairo,2026-01-07,3,75.25,
+1005,Maya Rao,Pune,2026-01-09,1,12.00,
+1005,Maya Rao,Pune,2026-01-09,1,12.00,
+1006,Ines Silva,Lisbon,2026-01-10,,64.10,SPRING
+1007,Leo Park,Seoul,2026-01-12,4,,
+1008,Tara Nguyen,Hanoi,2026-01-13,2,41.75,WELCOME
+1009,Omar Haddad,Cairo,2026-01-15,6,210.40,VIP
+1010,Sofia Costa,Lisbon,2026-01-16,1,15.00,
+1011,Aiko Mori,Osaka,2026-01-18,2,58.90,
+1012,Maya Rao,,2026-01-19,3,88.00,VIP
+1013,Tara Nguyen,Hanoi,2026-01-21,7,305.60,VIP
+1014,Ben Adler,Berlin,2026-01-22,1,22.30,
+,,,,,,
+1015,Aiko Mori,Osaka,2026-01-24,2,47.20,SPRING
+1016,Ben Adler,Berlin,2026-01-25,4,119.95,
+1017,Ines Silva,Lisbon,2026-01-27,2,36.40,
+1018,Leo Park,Seoul,2026-01-28,3,92.15,WELCOME

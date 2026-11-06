@@ -1,0 +1,56 @@
+{% extends "base.html" %}{% load static %}
+{% block content %}
+<div class="container-xl">
+  <section class="hero row align-items-center g-4">
+    <div class="col-lg-7 reveal">
+      <h1 class="hero-title">SIDEQUEST</h1>
+      <p class="hero-tagline">Small tools. Big distractions.</p>
+      <p class="hero-intro">Eleven little products under one roof: games worth losing an afternoon to, utilities worth keeping a tab open for. Everything works without an account. Sign in only when you want to keep your scores and saved work.</p>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a class="btn btn-cta btn-lg" href="#apps">Pick a sidequest <i class="bi bi-arrow-down ms-1"></i></a>
+        {% if not user.is_authenticated %}<a class="btn btn-sq btn-lg" href="{% url 'accounts:register' %}">Create account</a>{% endif %}
+      </div>
+    </div>
+    <div class="col-lg-5 d-none d-sm-block reveal">
+      <div class="hero-mosaic" aria-hidden="true">
+        {% for app in all_apps %}<a class="accent-{{ app.accent }}" href="{% url app.slug|add:':index' %}" title="{{ app.name }}" tabindex="-1"><i class="bi bi-{{ app.icon }}"></i></a>{% endfor %}
+        <div class="mosaic-count">{{ all_apps|length }}<small>apps</small></div>
+      </div>
+    </div>
+  </section>
+
+  {% if favourite_apps %}
+    <h2 class="section-heading"><i class="bi bi-star-fill"></i> Favourites</h2>
+    <div class="chip-row">{% for app in favourite_apps %}{% include "components/app_chip.html" %}{% endfor %}</div>
+  {% endif %}
+  {% if recent %}
+    <h2 class="section-heading"><i class="bi bi-clock-history"></i> Recently used</h2>
+    <div class="chip-row">{% for app in recent %}{% include "components/app_chip.html" %}{% endfor %}</div>
+  {% endif %}
+
+  <div id="apps" class="pt-4">
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <i class="bi bi-search"></i>
+        <input id="app-search" class="form-control" type="search" placeholder="Search apps  ( / )" aria-label="Search apps">
+      </div>
+      <div class="filter-pills" role="group" aria-label="Filter by category">
+        <button class="filter-pill" type="button" data-category="all" aria-pressed="true">All</button>
+        {% for section in sections %}<button class="filter-pill" type="button" data-category="{{ section.slug }}" aria-pressed="false">{{ section.name }}</button>{% endfor %}
+      </div>
+    </div>
+    {% for section in sections %}
+      <section data-section="{{ section.slug }}">
+        <h2 class="section-heading">{{ section.name }}</h2>
+        <div class="app-grid">{% for app in section.apps %}{% include "components/app_card.html" %}{% endfor %}</div>
+      </section>
+    {% endfor %}
+    <div id="no-results" class="empty-state" hidden>
+      <i class="bi bi-compass"></i>
+      <p>No app matches that. The quest continues elsewhere.</p>
+      <button id="clear-filters" class="btn btn-sq" type="button">Clear filters</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/home.js' %}"></script>{% endblock %}

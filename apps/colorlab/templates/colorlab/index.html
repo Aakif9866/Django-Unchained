@@ -1,0 +1,64 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}ColorLab · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'colorlab/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-purple" id="colorlab" data-palettes-url="{% url 'colorlab:palettes' %}">
+  {% include "components/app_header.html" %}
+  <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+    <button class="btn btn-cta" id="generate" type="button"><i class="bi bi-shuffle"></i> Generate <kbd>Space</kbd></button>
+    <label class="small text-muted d-flex align-items-center gap-1">Scheme
+      <select id="scheme" class="form-select form-select-sm w-auto">
+        <option value="harmonic">Harmonic</option><option value="analogous">Analogous</option><option value="complementary">Complementary</option>
+        <option value="triadic">Triadic</option><option value="monochrome">Monochrome</option><option value="random">Pure random</option>
+      </select>
+    </label>
+    <label class="small text-muted d-flex align-items-center gap-1">Colors
+      <select id="count" class="form-select form-select-sm w-auto">
+        <option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option>
+      </select>
+    </label>
+    <button class="btn btn-quiet ms-lg-auto" id="copy-hex" type="button"><i class="bi bi-clipboard"></i> Copy HEX list</button>
+    <button class="btn btn-quiet" id="copy-css" type="button"><i class="bi bi-braces"></i> Copy as CSS</button>
+  </div>
+  <div class="swatches" id="swatches"></div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-lg-7">
+      <section class="sq-panel h-100">
+        <h2 class="panel-title">On a real page</h2>
+        <div class="demo" id="demo">
+          <div class="demo-nav"><strong>Northwind</strong><span>Tours</span><span>Journal</span><span class="demo-link">Sign in</span></div>
+          <div class="demo-hero">
+            <h3>Walk somewhere new.</h3>
+            <p>Small-group walking holidays through places the guidebooks skipped.</p>
+            <span class="demo-btn">See the routes</span>
+          </div>
+          <div class="demo-cards">
+            <div class="demo-card"><b>Azores</b><br>Seven days of crater lakes.</div>
+            <div class="demo-card"><b>Ladakh</b><br>High passes, slow mornings.</div>
+          </div>
+        </div>
+        <div class="contrast-row mt-2" id="demo-contrast"></div>
+      </section>
+    </div>
+    <div class="col-lg-5">
+      <section class="sq-panel h-100">
+        <h2 class="panel-title">Saved palettes</h2>
+        {% if user.is_authenticated %}
+          <form id="save-form" class="input-group mb-2">
+            <input id="save-name" class="form-control" placeholder="Name this palette" maxlength="60" required aria-label="Palette name">
+            <button class="btn btn-sq" type="submit">Save</button>
+          </form>
+          <div id="saved" class="max-h-20"><span class="sq-spinner"></span></div>
+        {% else %}
+          {% include "components/signin_hint.html" with text="to save palettes." %}
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'colorlab/color-core.js' %}"></script>
+<script src="{% static 'colorlab/app.js' %}"></script>
+{% endblock %}

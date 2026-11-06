@@ -1,0 +1,65 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}TypeRush · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'typerush/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-amber" id="typerush"
+     data-passage-url="{% url 'typerush:passage' %}" data-stats-url="{% url 'typerush:stats' %}" data-save-url="{% url 'typerush:save_result' %}">
+  {% include "components/app_header.html" %}
+  <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+    <div class="btn-group" role="group" aria-label="Duration" id="durations">
+      {% for d in durations %}
+        <input class="btn-check" type="radio" name="seconds" id="s-{{ d }}" value="{{ d }}" {% if d == 60 %}checked{% endif %}>
+        <label class="btn btn-quiet" for="s-{{ d }}">{{ d }}s</label>
+      {% endfor %}
+    </div>
+    <div class="btn-group" role="group" aria-label="Text type" id="modes">
+      <input class="btn-check" type="radio" name="mode" id="m-prose" value="prose" checked><label class="btn btn-quiet" for="m-prose">Prose</label>
+      <input class="btn-check" type="radio" name="mode" id="m-code" value="code"><label class="btn btn-quiet" for="m-code">Code</label>
+    </div>
+    <button class="btn btn-quiet" id="restart" type="button"><i class="bi bi-arrow-clockwise"></i> New text <kbd>Esc</kbd></button>
+  </div>
+  <div class="stat-grid mb-3">
+    <div class="stat"><div class="stat-value" id="live-time">60</div><div class="stat-label">Seconds left</div></div>
+    <div class="stat"><div class="stat-value" id="live-wpm">0</div><div class="stat-label">WPM</div></div>
+    <div class="stat"><div class="stat-value" id="live-accuracy">100%</div><div class="stat-label">Accuracy</div></div>
+  </div>
+
+  <div class="type-box sq-panel" id="type-box">
+    <div id="passage" class="type-text mono" aria-hidden="true"><span class="sq-spinner"></span></div>
+    <textarea id="type-input" class="type-capture" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type the passage here"></textarea>
+    <div class="type-hint" id="type-hint">Click here and start typing. The timer starts on your first key.</div>
+  </div>
+
+  <section class="sq-panel mt-3 text-center" id="results" hidden>
+    <h2 class="h4 mb-3">Results</h2>
+    <div class="stat-grid mb-3">
+      <div class="stat"><div class="stat-value" id="res-wpm"></div><div class="stat-label">WPM</div></div>
+      <div class="stat"><div class="stat-value" id="res-accuracy"></div><div class="stat-label">Accuracy</div></div>
+      <div class="stat"><div class="stat-value" id="res-correct"></div><div class="stat-label">Correct characters</div></div>
+      <div class="stat"><div class="stat-value" id="res-errors"></div><div class="stat-label">Mistakes</div></div>
+    </div>
+    <p class="text-muted small" id="res-saved"></p>
+    <button class="btn btn-cta" id="again" type="button">Go again</button>
+  </section>
+
+  <div class="row g-3 mt-1">
+    <div class="col-lg-4">
+      <section class="sq-panel h-100">
+        <h2 class="panel-title">Leaderboard · <span id="board-label">60s</span></h2>
+        <div id="leaderboard"><span class="sq-spinner"></span></div>
+      </section>
+    </div>
+    <div class="col-lg-8">
+      <section class="sq-panel h-100">
+        <h2 class="panel-title">Your progress</h2>
+        <div id="history-empty">{% include "components/signin_hint.html" with text="to keep your results and chart your progress." %}</div>
+        <div class="chart-box" hidden id="history-box"><canvas id="history-chart" aria-label="WPM over your recent tests" role="img"></canvas></div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/chart.umd.min.js' %}"></script>
+<script src="{% static 'typerush/app.js' %}"></script>
+{% endblock %}

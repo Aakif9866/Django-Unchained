@@ -1,0 +1,62 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Notes · SIDEQUEST{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'notes/app.css' %}">{% endblock %}
+{% block content %}
+<div class="container-xl accent-yellow" id="notes" data-items-url="{% url 'notes:items' %}">
+  {% include "components/app_header.html" %}
+  {% if user.is_authenticated %}
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <section class="sq-panel notes-side">
+        <div class="d-flex gap-2 mb-2">
+          <input id="search" class="form-control" type="search" placeholder="Search notes" aria-label="Search notes">
+          <button class="btn btn-sq flex-none" id="new-note" type="button"><i class="bi bi-plus-lg"></i> New</button>
+        </div>
+        <div id="note-list" class="note-list"><span class="sq-spinner"></span></div>
+      </section>
+    </div>
+    <div class="col-lg-8">
+      <section class="sq-panel notes-main">
+        <div id="editor-empty"></div>
+        <div id="editor" class="d-flex flex-column h-100" hidden>
+          <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
+            <input id="note-title" class="form-control note-title" placeholder="Untitled" maxlength="200" aria-label="Note title">
+            <button class="icon-btn" id="pin" type="button" aria-pressed="false" aria-label="Pin note" title="Pin"><i class="bi bi-pin-angle"></i></button>
+            <button class="icon-btn" id="export" type="button" aria-label="Download note as text" title="Download"><i class="bi bi-download"></i></button>
+            <button class="icon-btn" id="delete" type="button" aria-label="Delete note" title="Delete" data-bs-toggle="modal" data-bs-target="#delete-modal"><i class="bi bi-trash"></i></button>
+          </div>
+          <textarea id="note-body" class="form-control note-body" placeholder="Start writing…" maxlength="100000" aria-label="Note body"></textarea>
+          <div class="d-flex justify-content-between small text-muted mt-2">
+            <span id="word-count"></span>
+            <span id="save-status" aria-live="polite"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content sq-modal">
+        <div class="modal-body">
+          <h2 class="h5" id="delete-title">Delete this note?</h2>
+          <p class="text-muted mb-0">This can't be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-quiet" type="button" data-bs-dismiss="modal">Keep it</button>
+          <button class="btn btn-danger-quiet" id="confirm-delete" type="button" data-bs-dismiss="modal">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <section class="sq-panel auth-card text-center">
+    <div class="empty-state"><i class="bi bi-journal-text"></i><p class="mb-0">Notes are private and saved to your account, so this one needs you signed in.</p></div>
+    <div class="d-flex justify-content-center gap-2">
+      <a class="btn btn-cta" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a>
+      <a class="btn btn-sq" href="{% url 'accounts:register' %}?next={{ request.path|urlencode }}">Create account</a>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}{% if user.is_authenticated %}<script src="{% static 'notes/app.js' %}"></script>{% endif %}{% endblock %}
