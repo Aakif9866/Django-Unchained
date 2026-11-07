@@ -57,6 +57,8 @@
     for (let i = 0; i < config.obstacles; i += 1) addObstacle();
     game.food = freeCell(2);
     $("overlay").hidden = true;
+    // The Start button just vanished but still holds focus, which would swallow Space and arrows.
+    document.activeElement.blur();
     $("pause").disabled = false;
     $("restart").disabled = false;
     setPauseLabel(false);
@@ -165,6 +167,7 @@
       if (game.powerUp) game.powerUp.expires += pausedFor;
       game.state = "running";
       $("overlay").hidden = true;
+      document.activeElement.blur();
       setPauseLabel(false);
       scheduleTick();
     }

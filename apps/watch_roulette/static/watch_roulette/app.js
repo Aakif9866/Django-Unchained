@@ -96,7 +96,7 @@
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       const label = segment.name.length > 20 ? `${segment.name.slice(0, 19)}…` : segment.name;
-      ctx.fillText(segments.length === 1 ? label : label, radius - 14, 0);
+      ctx.fillText(label, radius - 14, 0);
       ctx.restore();
     });
     ctx.fillStyle = style.getPropertyValue("--surface");

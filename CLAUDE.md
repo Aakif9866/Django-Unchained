@@ -1,7 +1,7 @@
 # SIDEQUEST: task brief and handoff
 
 **Branch:** `10-projects` (an orphan branch, separate from `main`, which holds the older Django Unchained project).
-**Status:** work in progress, stopped partway through Phase 4. See "Where to continue".
+**Status:** all five phases done and verified (2026-11-07). See "State" and "Possible next steps".
 
 ## The task
 
@@ -48,44 +48,23 @@ teal workhorse accent, gradient reserved for the brand mark and one main CTA per
 borders over shadows, reveal-on-hover cards, reduced-motion respected, WCAG AA. Tokens live in
 `static/css/sidequest.css`; components use tokens, not raw colours. Each app gets one hue through an `.accent-*` class.
 
-## Where to continue
+## State
 
-Implementation of all 11 apps is written. Verification and documentation are not finished. Do these in order:
+All 11 apps are built, tested and documented. Evidence, the bugs testing found, and what was skipped on purpose are in
+`PROGRESS.md`. In short:
+- 121 Django tests pass on SQLite and on PostgreSQL 16.
+- `e2e/smoke.py` runs 199 browser checks, all passing: every app as a guest and signed in, 5 widths × 2 themes, no
+  console errors or CSP violations. Its functional checks also pass against gunicorn with `DJANGO_DEBUG=0` on Postgres.
+- `README.md`, `PROGRESS.md`, `LEARNING.md`, `docs/decisions.md` and `requirements.txt` exist and match the code.
 
-1. **Fix the one failing test** (120 of 121 pass): `apps.focusquest.tests.SessionFlowTests.test_session_left_running_does_not_pay`.
-   This is a real bug. In `complete_session` (`apps/focusquest/services.py`), the `SessionError` for an overrun session
-   is raised inside `transaction.atomic()`, which rolls back the `ABANDONED` save. Decide the outcome inside the block
-   and raise after it.
-2. **Browser-test the Phase 4 apps.** FocusQuest, Watch Roulette, ColorLab and Notes have passing Django tests, but
-   **their JavaScript has never been run in a browser**. Check they load and work, watch for console errors and CSP
-   violations, and review screenshots.
-3. **Browser-test signed-in flows**, none of which have been exercised end to end: saving a Snake score, TypeRush
-   result and Maze run (including playing a maze to completion by keyboard), leaderboards updating, favourites, saved
-   regex patterns, saved requests and history in API Explorer, and the dashboard with real data.
-4. **Phase 5 checks not yet done:** mobile and tablet layouts (320, 375, 768, 1024, 1920px), light theme contrast (only
-   clicked, not reviewed), `collectstatic` with the production manifest storage, a run with `DJANGO_DEBUG=0`, and a run
-   on PostgreSQL via `DATABASE_URL`.
-5. **Write the end-to-end smoke script** `e2e/smoke.py`. `e2e/harness.py` exists and its docstring already refers to it.
-6. **Write the missing docs.** None of these exist yet: `README.md` (everything section 10 of the brief asks for:
-   overview, features, stack, architecture, folder structure, install, venv, migrations, superuser, local dev, per-app
-   internals, testing, env vars, deployment), `PROGRESS.md`, `LEARNING.md`, `docs/decisions.md`. Generate
-   `requirements.txt` with `uv export --no-hashes -o requirements.txt`, because the brief's folder structure lists it.
-7. Small cleanup: `apps/watch_roulette/static/watch_roulette/app.js` has a pointless
-   `segments.length === 1 ? label : label`, and `.ring-wrap .form-control` in the FocusQuest CSS is unused.
+**Push status:** `git push` to `origin` (owner `Aakif9866`) was refused for the SSH identity `ShuaibAakif`. The user
+needs to add that account as a collaborator or push with the owner's key.
 
-### Verification so far
+## Possible next steps (none are required by the brief)
 
-| Area | Django tests | Browser, as guest | Browser, signed in |
-|---|---|---|---|
-| Homepage, search, filters, theme toggle | yes | yes | no |
-| Snake Arena | yes | start, pause, resume, game over | no |
-| TypeRush | yes | typing and highlighting, not a full timed run | no |
-| Maze Runner | yes | renders only, not played | no |
-| Regex Playground | yes | yes, including killing a catastrophic pattern | no |
-| JSON Doctor | page load only (logic checked in browser) | yes | n/a |
-| CSV Detective | yes | yes, including cleaned download | n/a |
-| API Explorer | yes, including SSRF against a real socket | blocks and one public request | no |
-| FocusQuest, Watch Roulette, ColorLab, Notes | yes (one FocusQuest failure) | **not run** | **not run** |
+- TMDB lookup for Watch Roulette, password reset by email, and a shared cache backend for exact rate limits.
+- Raise `SECURE_HSTS_SECONDS` and opt into HSTS subdomains and preload once a real domain is chosen.
+- Keep `README.md`, `PROGRESS.md` and the smoke test in step with any change.
 
 ## Running it
 
@@ -98,7 +77,7 @@ uv run python manage.py test           # Harmless warning: "No directory at .../
 
 # Browser checks use the system Chrome, with the server running on port 8765:
 uv run python manage.py runserver 8765 --noreload
-uvx --with playwright python e2e/smoke.py     # Once smoke.py exists.
+uvx --with playwright python e2e/smoke.py     # About 4 minutes. --no-layout skips the width and theme sweep.
 ```
 
 Restart a `--noreload` server after Python changes. Playwright's `wait_for_function` uses `eval`, which the site's CSP

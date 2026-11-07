@@ -63,14 +63,20 @@ def complete_session(user, session_id):
             remaining = int((planned - elapsed).total_seconds())
             raise SessionError(f"This session still has {remaining} seconds to run.")
         if elapsed > planned + MAX_OVERRUN:
+            # Commit the abandonment, then raise outside the block: raising in here would roll it back.
             session.status = Status.ABANDONED
             session.save(update_fields=["status"])
-            raise SessionError("That session was left running too long to count.")
-        session.status = Status.COMPLETED
-        session.completed_at = now
-        session.xp_awarded = session.planned_minutes * XP_PER_MINUTE
-        session.save(update_fields=["status", "completed_at", "xp_awarded"])
-        return session, _unlock_achievements(user)
+            overrun = True
+        else:
+            overrun = False
+            session.status = Status.COMPLETED
+            session.completed_at = now
+            session.xp_awarded = session.planned_minutes * XP_PER_MINUTE
+            session.save(update_fields=["status", "completed_at", "xp_awarded"])
+            unlocked = _unlock_achievements(user)
+    if overrun:
+        raise SessionError("That session was left running too long to count.")
+    return session, unlocked
 
 
 def _active_days(user):
