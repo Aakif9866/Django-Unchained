@@ -151,7 +151,23 @@ Screenshots land in `/tmp/sidequest-shots` (override with `SHOTS_DIR`). Both sui
 
 ## Deployment
 
-The project is a standard WSGI app. On any host (a VPS, Render, Railway, Fly.io and so on):
+### Render (one click from the repo)
+
+`render.yaml` is a Render Blueprint. It describes a web service and a PostgreSQL database, and Render creates every
+secret itself: `DJANGO_SECRET_KEY` is generated, `DATABASE_URL` comes from the database, and the site's own hostname
+arrives as `RENDER_EXTERNAL_HOSTNAME`. No `.env` file or key is needed.
+
+1. In the Render dashboard, choose **New → Blueprint**, connect this GitHub repository and pick the `10-projects` branch.
+2. Click **Apply**. Render runs `render-build.sh` (installs uv, the locked dependencies and static files), then
+   migrates and starts gunicorn.
+3. The site appears at `https://sidequest-<something>.onrender.com`.
+
+On the free plan, the service sleeps after 15 minutes without visitors and takes a little under a minute to wake, and
+Render's free databases expire after a fixed period. Check Render's current pricing before relying on it.
+
+### Any other host
+
+The project is a standard WSGI app. On any host (a VPS, Railway, Fly.io and so on):
 
 1. Provision PostgreSQL and set `DATABASE_URL`.
 2. Set `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`, and leave `DJANGO_DEBUG` unset.

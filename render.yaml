@@ -1,0 +1,32 @@
+# Render Blueprint: one web service and one PostgreSQL database.
+# Every secret is created by Render itself; nothing sensitive lives in this file.
+databases:
+  - name: sidequest-db
+    plan: free
+    databaseName: sidequest
+    user: sidequest
+
+services:
+  - type: web
+    name: sidequest
+    runtime: python
+    plan: free
+    branch: 10-projects
+    buildCommand: ./render-build.sh
+    # Free instances have no pre-deploy hook, so migrations run just before gunicorn starts.
+    startCommand: .venv/bin/python manage.py migrate --noinput && .venv/bin/gunicorn config.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    healthCheckPath: /
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sidequest-db
+          property: connectionString
+      - key: UV_PYTHON
+        value: "3.13"
+      # Keep uv's Python inside the project folder, the only folder Render keeps from build to runtime.
+      - key: UV_PYTHON_INSTALL_DIR
+        value: /opt/render/project/src/.uv-python
+      - key: UV_PYTHON_PREFERENCE
+        value: only-managed
