@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Favourite, RecentApp
@@ -67,6 +67,17 @@ class RecentAndFavouriteTests(TestCase):
         self.assertEqual(self.client.get(reverse("core:dashboard")).status_code, 302)
         self.client.force_login(self.user)
         self.assertEqual(self.client.get(reverse("core:dashboard")).status_code, 200)
+
+
+class HealthCheckTests(TestCase):
+    @override_settings(ALLOWED_HOSTS=["sidequest.example.com"], SECURE_SSL_REDIRECT=True)
+    def test_health_check_answers_internal_plain_http_requests(self):
+        response = self.client.get("/healthz/", HTTP_HOST="10.0.0.7:10000")
+        self.assertEqual((response.status_code, response.content), (200, b"ok"))
+
+    @override_settings(ALLOWED_HOSTS=["sidequest.example.com"])
+    def test_other_paths_still_enforce_allowed_hosts(self):
+        self.assertEqual(self.client.get("/", HTTP_HOST="10.0.0.7:10000").status_code, 400)
 
 
 class RateLimitTests(TestCase):
