@@ -109,6 +109,8 @@ src/
 7. **Polish and quality:** each game is lazy-loaded through dynamic `import()`, so the home screen stays fast with 32 games. performance pass (60 fps on a mid-range phone, battery mode), accessibility, Lighthouse PWA audit, README + PROGRESS.
 
 ## v2 backlog (not built now)
+Full v2 plan (accounts, guests, profiles, chat, real time, Redis, DevOps): `docs/v2-plan.md`.
+
 Accounts and a database for synced saves, global leaderboards, daily seeded challenges and shareable result cards, real-time multiplayer (chess, air hockey, Pong), ghost-race sharing, a level editor for Turnstile and Sokoban, and an optional Capacitor wrapper for native haptics.
 
 ## Verification

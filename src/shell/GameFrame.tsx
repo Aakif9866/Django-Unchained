@@ -7,7 +7,7 @@ import { createLoop, type Loop } from "@/engine/loop";
 import { createRng, type Rng } from "@/engine/rng";
 import { clearSnapshot, loadSnapshot, saveSnapshot, type Snapshot } from "@/engine/snapshot";
 import { createCanvasStage, createThreeStage, type Stage } from "@/engine/stage";
-import { useStore } from "@/engine/store";
+import { batterySaver, useStore } from "@/engine/store";
 import type { GameEvent, GameInstance, GameModule } from "@/engine/types";
 import { getGame, gradientCss } from "@/games/registry";
 import { Sheet } from "./Sheet";
@@ -85,8 +85,7 @@ export function GameFrame({ id }: { id: string }) {
       const m = mod.current;
       if (!host || !m) return;
       shutdown();
-      const { battery } = useStore.getState().settings;
-      const maxDpr = battery ? 1 : 2;
+      const maxDpr = batterySaver() ? 1 : 2;
       const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
       const input = createInput(host);
       const rng = createRng();
@@ -125,7 +124,7 @@ export function GameFrame({ id }: { id: string }) {
       const loop = createLoop(
         (dt) => game.update(dt),
         (a) => game.render(a),
-        () => (useStore.getState().settings.battery ? 30 : 60),
+        () => (batterySaver() ? 30 : 60),
       );
       rt.current = { stage, input, rng, loop, game };
       // Paint one frame so the board shows behind the start / resume sheet.

@@ -56,3 +56,19 @@ export const useStore = create<State>()(
     },
   ),
 );
+
+/** Battery saver: the user's toggle, or automatic when the device is low (≤ 20%) and not charging. */
+let lowBattery = false;
+type BatteryLike = EventTarget & { level: number; charging: boolean };
+if (typeof navigator !== "undefined" && "getBattery" in navigator) {
+  (navigator as Navigator & { getBattery(): Promise<BatteryLike> })
+    .getBattery()
+    .then((b) => {
+      const check = () => (lowBattery = !b.charging && b.level <= 0.2);
+      check();
+      b.addEventListener("levelchange", check);
+      b.addEventListener("chargingchange", check);
+    })
+    .catch(() => {});
+}
+export const batterySaver = () => useStore.getState().settings.battery || lowBattery;

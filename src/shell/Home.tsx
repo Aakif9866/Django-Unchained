@@ -31,8 +31,20 @@ function Card({ game, best }: { game: GameMeta; best?: number }) {
   );
   if (!ready)
     return (
-      <div className="card" data-ready="false" aria-disabled="true" aria-label={`${game.name}, coming soon`}>
-        {inner}
+      <div
+        className="card soon"
+        data-ready="false"
+        aria-disabled="true"
+        aria-label={`${game.name}, coming soon`}
+        style={{ backgroundImage: `linear-gradient(var(--soon-veil), var(--soon-veil)), ${gradientCss(game, 120)}` }}
+      >
+        <span className="soon-icon" style={{ backgroundImage: gradientCss(game) }}>
+          <GameIcon game={game} />
+        </span>
+        <span className="min-w-0">
+          <span className="t-headline block truncate text-[0.9375rem]">{game.name}</span>
+          <span className="t-caption block truncate">{game.render === "3d" ? "3D · " : ""}{game.category}</span>
+        </span>
       </div>
     );
   return (
@@ -87,7 +99,8 @@ export function Home() {
   );
   const hero = shelf[0] ?? getGame("glide")!;
   const list = filter === "All" ? GAMES : GAMES.filter((g) => g.category === filter);
-  const sorted = [...list].sort((a, b) => Number(isPlayable(b)) - Number(isPlayable(a)));
+  const ready = list.filter(isPlayable);
+  const soon = list.filter((g) => !isPlayable(g));
 
   return (
     <div className="relative min-h-dvh">
@@ -155,11 +168,23 @@ export function Home() {
               </button>
             ))}
           </div>
-          <div className="game-grid">
-            {sorted.map((g) => (
-              <Card key={g.id} game={g} best={hydrated ? bests[g.id] : undefined} />
-            ))}
-          </div>
+          {ready.length > 0 && (
+            <div className="game-grid">
+              {ready.map((g) => (
+                <Card key={g.id} game={g} best={hydrated ? bests[g.id] : undefined} />
+              ))}
+            </div>
+          )}
+          {soon.length > 0 && (
+            <>
+              <h3 className="t-headline mb-3 mt-8" style={{ color: "var(--text-2)" }}>On the way · {soon.length}</h3>
+              <div className="soon-grid">
+                {soon.map((g) => (
+                  <Card key={g.id} game={g} />
+                ))}
+              </div>
+            </>
+          )}
         </section>
 
         <footer className="t-caption mt-14 text-center">Everything stays on this device. No account, no tracking.</footer>

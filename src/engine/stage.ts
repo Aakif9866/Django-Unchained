@@ -101,3 +101,11 @@ export function createThreeStage(host: HTMLElement, maxDpr: number): ThreeStage 
   };
   return stage;
 }
+
+/** Fit a w×h world into the play area (below the HUD, above the home indicator). World → screen: x + wx·k. */
+export function fitWorld(stage: { width: number; height: number }, ins: { top: number; bottom: number }, w: number, h: number, pad = 12) {
+  const availW = stage.width - pad * 2;
+  const availH = stage.height - ins.top - ins.bottom - pad * 2;
+  const k = Math.max(0.1, Math.min(availW / w, availH / h));
+  return { k, x: (stage.width - w * k) / 2, y: ins.top + pad + (availH - h * k) / 2 };
+}

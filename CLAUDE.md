@@ -3,7 +3,7 @@
 @AGENTS.md
 
 **Branch:** `new-project` (orphan, separate from `main` = Django Unchained and `10-projects` = SIDEQUEST).
-**Status (2026-11-20):** Phase 1 mostly done, nothing committed yet. When the user says **"continue"**, read
+**Status (2026-11-20):** Phase 1 done (first commit `852e2a0`); Phase 2 next. When the user says **"continue"**, read
 `PROGRESS.md` → "Next up" and carry on from there.
 
 ## The product
@@ -78,7 +78,7 @@ npx playwright test tests/shots.spec.ts   # screenshots → test-results/shots/ 
 - Keep it simple: no new dependency or abstraction when the stack covers it. The Game contract is the only abstraction.
 - Never fabricate results. A game counts as done only when its logic tests and smoke test pass and its screenshot has
   been looked at. Report failures as they are.
-- Commit or push only when asked. Nothing has been committed on this branch yet.
+- Commit or push only when asked.
 - The repo root holds untracked SIDEQUEST leftovers (`accounts/ apps/ config/ core/ e2e/ .venv db.sqlite3 .env`).
   They're gitignored. Don't delete them without asking.
 - Keep `PROGRESS.md` updated at the end of every session.

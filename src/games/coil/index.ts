@@ -25,7 +25,7 @@ const coil: GameModule = {
 
     const off = input.on((e) => {
       if (e.type === "swipe") turn(s, e.dir);
-      else if (e.type === "action" && e.action !== "primary" && e.action !== "pause") turn(s, e.action);
+      else if (e.type === "action" && (e.action === "up" || e.action === "down" || e.action === "left" || e.action === "right")) turn(s, e.action);
     });
 
     function layout() {

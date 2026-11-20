@@ -1,9 +1,9 @@
 /**
  * One input surface for every game: pointer gestures (tap, swipe, drag with velocity),
- * keyboard, and a two-finger touch that means "pause" (call mode).
+ * keyboard, gamepad (d-pad / left stick / A / Start), and a two-finger touch that means "pause" (call mode).
  */
 export type Dir = "up" | "down" | "left" | "right";
-export type Action = Dir | "primary" | "pause";
+export type Action = Dir | "primary" | "secondary" | "pause";
 
 export type InputEvent =
   | { type: "action"; action: Action }
@@ -13,6 +13,8 @@ export type InputEvent =
 
 export interface Input {
   on(fn: (e: InputEvent) => void): () => void;
+  /** True while a key / pad button for this action is held (for paddles and steering). */
+  isDown(a: Action): boolean;
   enabled: boolean;
   destroy(): void;
 }
@@ -23,8 +25,13 @@ const KEYS: Record<string, Action> = {
   ArrowLeft: "left", KeyA: "left",
   ArrowRight: "right", KeyD: "right",
   Space: "primary", Enter: "primary",
+  KeyC: "secondary", ShiftLeft: "secondary", ShiftRight: "secondary",
   Escape: "pause", KeyP: "pause",
 };
+
+// Standard gamepad mapping: 0 = A, 1 = B, 9 = Start, 12–15 = d-pad up/down/left/right.
+const PAD_BUTTONS: [number, Action][] = [[0, "primary"], [1, "secondary"], [9, "pause"], [12, "up"], [13, "down"], [14, "left"], [15, "right"]];
+const STICK = 0.5;
 
 const SWIPE_PX = 22; // hysteresis before a drag commits to a direction
 const TAP_PX = 10;
@@ -37,8 +44,10 @@ export function createInput(el: HTMLElement): Input {
   let swipeFrom = { x: 0, y: 0 };
   let moved = false;
   let history: { x: number; y: number; t: number }[] = [];
+  const keysDown = new Set<Action>();
   const input: Input = {
     enabled: false,
+    isDown: (a) => input.enabled && (keysDown.has(a) || held.has(a)),
     on(fn) {
       subs.add(fn);
       return () => subs.delete(fn);
@@ -49,6 +58,10 @@ export function createInput(el: HTMLElement): Input {
       el.removeEventListener("pointerup", up);
       el.removeEventListener("pointercancel", cancel);
       window.removeEventListener("keydown", key);
+      window.removeEventListener("keyup", keyUp);
+      window.removeEventListener("blur", clearKeys);
+      cancelAnimationFrame(padFrame);
+      window.removeEventListener("gamepadconnected", padConnected);
       subs.clear();
     },
   };
@@ -106,18 +119,49 @@ export function createInput(el: HTMLElement): Input {
   function cancel(e: PointerEvent) {
     pointers.delete(e.pointerId);
   }
+  function keyUp(e: KeyboardEvent) {
+    const action = KEYS[e.code];
+    if (action) keysDown.delete(action);
+  }
+  function clearKeys() {
+    keysDown.clear();
+  }
   function key(e: KeyboardEvent) {
     const action = KEYS[e.code];
-    if (!action || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (!action || e.metaKey || e.ctrlKey || e.altKey) return;
     if (!input.enabled) return;
+    keysDown.add(action);
+    if (e.repeat) return e.preventDefault();
     e.preventDefault();
     emit({ type: "action", action });
   }
+
+  // Gamepads have no events for buttons, so poll once per frame and emit on press edges only.
+  let held = new Set<Action>();
+  let padFrame = 0;
+  function pollPads() {
+    const pads = (navigator.getGamepads?.() ?? []).filter((p) => p !== null);
+    padFrame = pads.length ? requestAnimationFrame(pollPads) : 0; // idle until a pad connects
+    const now = new Set<Action>();
+    for (const pad of pads) {
+      for (const [i, a] of PAD_BUTTONS) if (pad.buttons[i]?.pressed) now.add(a);
+      const [x = 0, y = 0] = pad.axes;
+      if (Math.abs(x) > STICK && Math.abs(x) >= Math.abs(y)) now.add(x > 0 ? "right" : "left");
+      else if (Math.abs(y) > STICK) now.add(y > 0 ? "down" : "up");
+    }
+    for (const a of now) if (!held.has(a)) emit({ type: "action", action: a });
+    held = now;
+  }
+  const padConnected = () => padFrame || pollPads();
+  window.addEventListener("gamepadconnected", padConnected);
+  pollPads();
 
   el.addEventListener("pointerdown", down);
   el.addEventListener("pointermove", move);
   el.addEventListener("pointerup", up);
   el.addEventListener("pointercancel", cancel);
   window.addEventListener("keydown", key);
+  window.addEventListener("keyup", keyUp);
+  window.addEventListener("blur", clearKeys);
   return input;
 }
