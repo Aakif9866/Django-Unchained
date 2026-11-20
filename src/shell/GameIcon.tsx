@@ -142,6 +142,41 @@ const GLYPHS: Record<string, React.ReactNode> = {
       <rect x="28" y="4" width="12" height="7" rx="2" fill="#fff" transform="rotate(-30 34 7)" />
     </svg>
   ),
+  gambit: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <path d="M8 8h8v8H8zM24 8h8v8h-8zM16 16h8v8h-8zM32 16h8v8h-8zM8 24h8v8H8zM24 24h8v8h-8zM16 32h8v8h-8zM32 32h8v8h-8z" fill="#fff" opacity=".22" />
+      <path d="M20 40c-1-5 1-9 5-12-3 0-6 0-8-1-2-2-2-4 0-6l7-8 2-6 2 4c7 0 13 6 13 15 0 5 0 10-1 14Z" fill="#fff" />
+      <circle cx="23.5" cy="20" r="1.4" fill="#2c3e50" />
+    </svg>
+  ),
+  twenty48: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="5" y="6" width="14" height="14" rx="3.5" fill="#fff" opacity=".5" />
+      <rect x="5" y="28" width="14" height="14" rx="3.5" fill="#fff" opacity=".5" />
+      <path d="M21 15l4 4M21 33l4-4" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity=".75" />
+      <rect x="26" y="14" width="18" height="20" rx="4.5" fill="#fff" />
+    </svg>
+  ),
+  reversi: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <circle cx="16" cy="16" r="9" fill="#fff" />
+      <circle cx="32" cy="32" r="9" fill="#fff" />
+      <circle cx="32" cy="16" r="8" stroke="#fff" strokeWidth="2.5" opacity=".6" />
+      <circle cx="16" cy="32" r="8" stroke="#fff" strokeWidth="2.5" opacity=".6" />
+    </svg>
+  ),
+  "four-up": (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="5" y="9" width="38" height="34" rx="6" fill="#fff" opacity=".25" />
+      <circle cx="14" cy="35" r="4" fill="#fff" />
+      <circle cx="24" cy="35" r="4" fill="#fff" opacity=".55" />
+      <circle cx="24" cy="25" r="4" fill="#fff" />
+      <circle cx="34" cy="35" r="4" fill="#fff" opacity=".55" />
+      <circle cx="34" cy="25" r="4" fill="#fff" opacity=".55" />
+      <circle cx="34" cy="15" r="4" fill="#fff" />
+      <circle cx="14" cy="4.5" r="3.5" fill="#fff" />
+    </svg>
+  ),
   "helix-drop": (
     <svg viewBox="0 0 48 48" fill="none" aria-hidden>
       <rect x="21" y="2" width="6" height="44" rx="3" fill="#fff" opacity=".5" />

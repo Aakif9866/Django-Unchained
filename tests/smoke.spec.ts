@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const PLAYABLE = ["coil", "glide", "flutter", "stack-fall", "brickline", "orbit", "bubble", "rally", "fruit-slice", "rail-dash", "ridge-run", "puck", "hop", "pocket-golf", "labyrinth", "drift", "helix-drop"];
+const PLAYABLE = ["coil", "glide", "flutter", "stack-fall", "brickline", "orbit", "bubble", "rally", "fruit-slice", "rail-dash", "ridge-run", "puck", "hop", "pocket-golf", "labyrinth", "drift", "helix-drop", "gambit", "four-up", "reversi", "twenty48"];
 
 function watchErrors(page: Page) {
   const errors: string[] = [];
@@ -14,7 +14,7 @@ test("home lists every game and links the playable ones", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".card")).toHaveCount(32);
   for (const id of PLAYABLE) await expect(page.locator(`.game-grid a[href="/play/${id}"]`)).toBeVisible();
-  await expect(page.locator('.card[aria-disabled="true"]')).toHaveCount(15);
+  await expect(page.locator('.card[aria-disabled="true"]')).toHaveCount(11);
   await page.getByRole("button", { name: "Puzzle" }).click();
   await expect(page.locator(".card")).toHaveCount(9);
   expect(errors).toEqual([]);
@@ -101,6 +101,34 @@ test("stack-fall: hard drops score and stacking to the top ends the run", async 
     await page.waitForTimeout(40);
   }
   await expect(page.getByRole("dialog", { name: "Game over" })).toBeVisible();
+});
+
+// Board games: your move, then the engine's reply, computed off the main thread.
+const VERSUS: Record<string, string[]> = {
+  gambit: ["Space", "Space", "ArrowUp", "ArrowUp", "Space"], // reveal cursor, pick e2, up to e4, move
+  "four-up": ["Space"],
+  reversi: ["Space", "Space"], // reveal cursor on a legal square, place
+};
+for (const [id, keys] of Object.entries(VERSUS)) {
+  test(`${id}: you move and the engine replies from its Web Worker`, async ({ page }) => {
+    const errors = watchErrors(page);
+    const workers: string[] = [];
+    page.on("worker", (w) => workers.push(w.url()));
+    await page.goto(`/play/${id}`);
+    await page.getByRole("button", { name: "Play", exact: true }).click();
+    for (const k of keys) await page.keyboard.press(k);
+    await expect(page.locator('[data-ply="2"]')).toBeAttached({ timeout: 10_000 });
+    expect(workers).toHaveLength(1);
+    expect(errors).toEqual([]);
+  });
+}
+
+test("gambit: resigning (asked twice) ends the run", async ({ page }) => {
+  await page.goto("/play/gambit");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.keyboard.press("KeyC");
+  await page.keyboard.press("KeyC");
+  await expect(page.getByRole("dialog", { name: "Game over" })).toBeVisible({ timeout: 5_000 });
 });
 
 test("unknown route shows the custom 404", async ({ page }) => {

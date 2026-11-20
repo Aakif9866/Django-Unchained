@@ -54,7 +54,7 @@ export function Sheet({
             className="scrim"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, pointerEvents: "none" }}
             transition={{ duration: 0.25 }}
             onClick={onDismiss}
           />
@@ -67,7 +67,7 @@ export function Sheet({
             className="sheet material-heavy"
             initial={{ y: "110%" }}
             animate={{ y: 0 }}
-            exit={{ y: "110%" }}
+            exit={{ y: "110%", pointerEvents: "none" }}
             transition={SPRING}
             drag={onDismiss ? "y" : false}
             dragConstraints={{ top: 0, bottom: 0 }}

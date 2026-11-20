@@ -120,16 +120,79 @@ since `852e2a0`.
 **v2 plan saved:** `docs/v2-plan.md` (guests and accounts, profiles and settings sync, friends, DMs and group chat,
 real-time multiplayer, Redis, DevOps).
 
+## Session 6 (2026-11-20): Helix Drop verified, Phase 4 (board games) done
+
+**Done and verified** (logic tests, smoke tests, screenshots looked at on a phone, at 360 px and at 1440 px)
+- **Helix Drop** passes its smoke test. The screenshot showed a light pink backdrop that clashed with every other game,
+  so it now has a dark backdrop tinted per level (like Glide), vivid slightly emissive rings that shade down the tower,
+  and a whiter pillar.
+- **Shell fix (all games):** the closing scrim and sheet swallowed touches for about 250 ms after Play or Resume. Exiting
+  sheets now ignore pointer events. Checked both ways: a drag 60 ms after Play failed before the fix and passes after.
+- `search.ts`: one negamax with alpha-beta, iterative deepening, an optional quiescence pass and root "noise" for
+  the lower levels. Moves are numbers; the clock and randomness are injected, so tests are exact.
+- `kit.ts` (first written as `versus.ts`): the Worker bridge (asks once, plays the reply after a 0.45 s beat, only counts
+  time while playing). It falls back to the main thread if the worker fails, and logs a console error when it does,
+  so the smoke tests (which fail on any console error) prove the Worker really ran. Also the result banner, strip pills
+  and thinking dots, shared by all the turn-based games.
+- **Gambit** (chess): full rules (castling, en passant, a promotion picker, mate, stalemate, 50-move, threefold,
+  insufficient material). Perft matches the reference counts (start to depth 4, Kiwipete to 3, positions 3/4/5).
+  The engine uses piece-square tables, a mop-up term so it actually mates, captures first, and quiescence.
+  Levels: Novice (depth 1, no quiescence, lots of noise), Club (2), Expert (3, about 10 ms), Master (up to depth 8 in
+  1.5 s, reaching 5–6 on this Mac). Original vector pieces. Tap-tap (the second tap commits on press) or drag with the
+  grab offset kept, a slide animation, a keyboard cursor, and two-step resign (button, or C twice). The board turns
+  around when you play Black.
+- **Four Up**: 69 precomputed lines, centre-first ordering, a line-window evaluation, and Master searching up to depth
+  16 in 1.2 s. Discs fall behind a frame with real holes, bounce once, and buzz when they land (not when released).
+  Your disc waits above the board, follows your finger, and drops on release.
+- **Reversi**: automatic passes with a message, end detection, weighted squares plus mobility, and an exact endgame
+  (Expert at 8 or fewer empties, Master at 12 or fewer within its budget). Flips ripple outward from the new disc.
+  A ghost disc shows on press, and you can slide off a square to cancel.
+- **Ladder** for all three: a win starts the next game against a stronger level (colours or first move swap), a draw
+  scores and keeps the level, a loss or resign ends the run. Points: your captures/flips × level during play;
+  win 300 (Four Up: 200 plus a bonus for a quick win) × level; draw 100 × level.
+- Board games stop repainting while nothing moves (a short "hot" timer), so a still board costs no battery on a call.
+  Each one sets `data-ply` on the stage host so e2e can see moves.
+- Results: `npm test` **201/201** (Gambit 20, Four Up 11, Reversi 9 new). `npm run e2e` **57/57**, including a test per
+  board game that your move gets an engine reply from a real Web Worker, and Gambit resign → game over.
+  tsc and eslint are clean, and a clean build exports the worker chunks.
+
+**Simplified on purpose:** the chess search has no transposition table, no repetition check (a winning engine can
+walk into a threefold draw) and no check extensions; add Zobrist hashing + a TT if Master needs more strength.
+Reversi doesn't relax the X/C-square penalties once a corner is taken. There's no takeback, because it would let you
+game the ladder.
+
+**Started after that checkpoint, NOT verified yet** (the user stopped the session here)
+- **Twenty48** (Phase 5, game 1): `logic.ts` + 8/8 tests pass (merging once per move, all four directions, no-op moves,
+  2048 flag, game over, undo, snapshot round-trip). Undo steps back one move and rewinds the RNG, so the same move
+  spawns the same tile (no fishing). `index.ts` is written: one move per swipe, committed when the swipe is recognised;
+  slide, then a merge pop and spawn scale-in; an Undo button under the board (C on the keyboard); a "2048!" toast; a
+  "No moves left" banner, then game over. It's registered (registry, glyph, `PLAYABLE`, disabled count 11, shot keys),
+  but it has **not** been smoke-tested or looked at on screen yet.
+- Renamed `src/games/versus.ts` → `src/games/kit.ts`; the imports are updated. Added the loud Worker fallback (above).
+- Found: `next build` also copies each `ai.worker.ts` source file into `out/_next/static/media/`. Those copies are
+  unused: the built game code calls Turbopack's worker loader (`e.r(…)(Worker)`), which starts the bundled
+  `turbopack-worker-*.js` chunk. Added `"out"` to `tsconfig.json` `exclude`, because those `.ts` copies broke `tsc`.
+- The full suite has not been re-run since these changes (last green: 201 unit tests and 57 e2e, before Twenty48).
+
 ## Next up (start here on "continue")
 
-1. Verify Helix Drop: run the scratchpad-style check (tsc, eslint, `npm test`, `rm -rf .next && npm run build`, smoke,
-   `SHOT=helix-drop npx playwright test tests/shots.spec.ts`) and look at the screenshot.
-2. Phase 4, board games against AI: Gambit (chess, Web Worker, perft), Reversi, Four Up (shared negamax).
-3. Phase 5, puzzles: Turnstile, Twenty48, Minefield, Nine, Crates, Pipe Flow, Lights Out, Nonogram.
-4. Phase 6, cards and tiles: Solitaire, Pairs, Tiles, Word Hunt. Phase 7: polish (Lighthouse, perf, README).
+1. Finish verifying the end of session 6:
+   - Kill any leftover dev server first: `lsof -ti:4310 | xargs kill`.
+   - Run `npx tsc --noEmit && npx eslint src tests && npm test` (expect 209), then `rm -rf .next out && npm run build`,
+     then `npm run e2e`. The three "engine replies from its Web Worker" tests must still pass now that a failing worker
+     logs an error.
+   - Look at `test-results/shots/twenty48.png` (tiles, Undo button, info pill). Twenty48 is done once that's good.
+2. Phase 5, the rest: Minefield, Lights Out, Nine, Crates, Pipe Flow, Nonogram, then Turnstile (3D). Decide how
+   puzzles without a natural fail state end a run, because a best score is only recorded on `over`. Ideas: lives
+   for mistakes (Nine, Nonogram), a move budget (Lights Out, Pipe Flow), and for Crates a level pack or an "end run"
+   button.
+3. Phase 6, cards and tiles: Solitaire, Pairs, Tiles, Word Hunt. Phase 7: polish (Lighthouse, perf, README; decide
+   whether to drop the unused R3F/drei/postprocessing packages; maybe stop the raw `ai.worker.ts` copies in `out/`).
 
 **Adding a game quickly:** write logic + tests + index, then register (registry `load` + controls, a GameIcon glyph,
 `PLAYABLE` and the disabled count in `tests/smoke.spec.ts`, a key list in `tests/shots.spec.ts`).
+**Fast visual loop:** `npx next dev -p 4310`, then `SHOT=<id> npx playwright test tests/shots.spec.ts` reuses it.
+Kill it (`lsof -ti:4310 | xargs kill`) before `npm run e2e`, or the suite runs against dev instead of `out/`.
 
 ## Known limits
 

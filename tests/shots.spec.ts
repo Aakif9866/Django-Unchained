@@ -20,6 +20,10 @@ const GAMES: Record<string, string[]> = {
   "labyrinth": ["wait", "wait", "wait"],
   "drift": ["wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "ArrowRight", "wait"],
   "helix-drop": ["ArrowLeft", "wait", "wait", "wait", "wait", "wait", "wait"],
+  "four-up": ["Space", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "ArrowLeft", "Space", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "ArrowRight", "ArrowRight"],
+  twenty48: ["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "ArrowUp", "wait", "wait"],
+  reversi: ["Space", "Space", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait"],
+  gambit: ["Space", "Space", "ArrowUp", "ArrowUp", "Space", "wait", "wait", "wait", "wait", "wait", "wait", "ArrowDown", "ArrowDown", "ArrowDown", "ArrowRight", "ArrowRight", "Space", "wait"],
 };
 
 test("home", async ({ page }) => {

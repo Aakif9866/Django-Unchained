@@ -12,13 +12,16 @@ const helixDrop: GameModule = {
   create({ stage, input, rng, emit, reducedMotion }) {
     const { scene, renderer, key } = stage;
     let s: HelixState = newGame(rng);
-    stage.host.style.background = "linear-gradient(180deg, #ff9a9e 0%, #a18cd1 45%, #2b1a5a 100%)";
+    const hue0 = () => (330 + s.level * 47) % 360; // each level gets its own colour family
 
     const sliceGeo = new THREE.CylinderGeometry(R_OUT, R_OUT, THICK, 6, 1, false, 0, (Math.PI * 2) / SLICES);
     const dangerM = new THREE.MeshStandardMaterial({ color: 0xff1f4b, emissive: 0xb0102e, emissiveIntensity: 0.6, roughness: 0.4 });
     const tower = new THREE.Group();
     scene.add(tower);
-    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 1, 24), new THREE.MeshStandardMaterial({ color: 0xfdf2f8, roughness: 0.5 }));
+    const pillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.05, 1.05, 1, 32),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xc4b5fd, emissiveIntensity: 0.22, roughness: 0.25, metalness: 0.1 }),
+    );
     tower.add(pillar);
     let ringGroups: THREE.Group[] = [];
     let builtFor = "";
@@ -26,11 +29,13 @@ const helixDrop: GameModule = {
 
     function build() {
       ringGroups.forEach((g) => tower.remove(g));
+      const h = hue0();
+      stage.host.style.background = `radial-gradient(120% 75% at 50% 12%, hsl(${h} 70% 30%), hsl(${(h + 300) % 360} 60% 7%) 78%)`;
       ringGroups = s.rings.map((r, i) => {
         const g = new THREE.Group();
         g.position.y = -i * GAP_Y;
-        const hue = ((s.level * 47 + i * 9) % 360) / 360;
-        const safeM = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(hue, 0.75, 0.6), roughness: 0.35 });
+        const c = new THREE.Color().setHSL(((h + i * 11) % 360) / 360, 0.88, 0.6);
+        const safeM = new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.22, roughness: 0.3 });
         r.slices.forEach((sl, k) => {
           if (sl === "g") return;
           const m = new THREE.Mesh(sliceGeo, sl === "d" ? dangerM : safeM);
