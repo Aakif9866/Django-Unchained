@@ -159,7 +159,7 @@ export function Home() {
         <section className="mt-10" aria-labelledby="library-h">
           <div className="mb-4 flex items-end justify-between gap-3">
             <h2 id="library-h" className="t-title">Library</h2>
-            <span className="t-caption">{playable.length} of {GAMES.length} playable</span>
+            <span className="t-caption">{playable.length === GAMES.length ? `${GAMES.length} games` : `${playable.length} of ${GAMES.length} playable`}</span>
           </div>
           <div className="-mx-[var(--gutter)] mb-5 flex gap-2 overflow-x-auto px-[var(--gutter)] pb-1 [scrollbar-width:none]" role="toolbar" aria-label="Filter by category">
             {(["All", ...CATEGORIES] as const).map((c) => (

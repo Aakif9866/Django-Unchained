@@ -174,20 +174,80 @@ game the ladder.
   `turbopack-worker-*.js` chunk. Added `"out"` to `tsconfig.json` `exclude`, because those `.ts` copies broke `tsc`.
 - The full suite has not been re-run since these changes (last green: 201 unit tests and 57 e2e, before Twenty48).
 
+## Session 7 (2026-11-20): Phase 5 puzzles, part 1 (five games)
+
+**Done and verified** (logic tests, smoke tests on the static build, screenshots looked at)
+- Finished session 6's check: the full suite passed, and the board-game Worker tests pass with the strict fallback, so
+  the engines really run off the main thread.
+- **Twenty48**: done. After looking at the screenshot, swapped the hard gloss bar for a soft sheen and gave Undo a plain label.
+- **Minefield**: the first dig is always safe and opens an area. Flood fill, chording, and boards that grow and get
+  denser (8 × 10 up to 8 × 14). Hold to flag (a ring fills as you hold) or use the Dig/Flag toggle. Tiles ripple open
+  outward. One mine ends the run; a cleared board gives a bonus, then the next board.
+- **Lights Out**: puzzles come from random presses, so they're always solvable. A GF(2) solver (Gaussian elimination,
+  then the lightest of the equivalent solutions) gives the true par. You get par + slack moves; running out ends the
+  run. Boards go 5 → 6 → 7.
+- **Nine** (sudoku): fill a random full grid, then remove clues while a 2-solution count stays at 1, so every puzzle
+  has a unique answer. Graded "Gentle" (singles alone solve it) or "Tricky". Clues drop from 40 toward 26 as you go.
+  Notes, wrong numbers flash and shake, three mistakes end the run. A number pad shows how many of each digit are
+  left; digit keys, N, Backspace on desktop (the game listens for those keys itself, only while it takes input).
+- **Nonogram**: random clumped pictures, kept only if a line solver finishes them (which also proves a unique
+  answer). Drag paints along one row or column, clue rails dim when a line is done, Fill/Cross toggle, three
+  mistakes. Boards go 5 → 8 → 10.
+- **Pipe Flow**: a random spanning tree from a central source (randomised Prim's, at most 3 openings per tile), then
+  every tile scrambled. Par is the fewest clockwise turns back to the generated layout (stored as `goal`). A test
+  replays par turns and checks the board solves. Water lights every connected tile and the endpoint lamps; you get
+  par + slack turns.
+- **Crates**: 10 original levels. A breadth-first solver (with dead-corner pruning) in the tests proves each one
+  solvable in exactly its listed best: 5, 10, 11, 14, 15, 19, 24, 27, 39, 41 moves. Swipe to step (a long drag keeps
+  stepping), or tap a floor tile to walk there along the shortest path (walking never pushes); tap an adjacent crate
+  to push it. Every step counts against the level's budget (2 × best + 15). Undo and restart are free but give no
+  steps back. Running out ends the run; finishing level 10 ends it with +500.
+- **Turnstile** (3D, my own mechanic for the rotate-the-world genre): coloured turnstiles carry path pieces, and
+  tapping one turns every turnstile of that colour together. Once a path joins the pad to the goal, the bot walks home
+  along a BFS route. Drag orbits the world (it coasts after release); keyboard ← → picks a colour, Space turns it.
+  10 levels, each drawn solved and then scrambled to its hardest start by a search. The tests prove each starts
+  blocked and is solvable in exactly its par (1, 2, 3, 4, 4, 6, 7, 7, 7, 8 taps). Budget: par + 4.
+- Results: `npm test` **253/253**, `npm run e2e` **73/73** on the static build, tsc and eslint clean.
+  All 8 Phase 5 screenshots looked at; Turnstile also checked end to end (tap → bot walks home → "Home" card).
+- **Simplified on purpose:** Turnstile has 10 levels, not the 20 in `docs/plan.md`, and a flat board (no heights or
+  stairs). Crates has 10 levels. Add more by drawing them solved; the tests prove them.
+- Gotcha: updating smoke counts with a blanket find-and-replace also changed the Puzzle filter count (it must stay
+  9). Edit those two numbers by hand.
+
+## Session 8 (2026-11-20): Phase 6, all 32 games playable
+
+**Done and verified** (logic tests, smoke tests on the static build, screenshots looked at)
+- **Pairs**: a seeded shuffle and boards that grow from 6 to 12 pairs, each with a time limit (timed mode). Matches score
+  more on a streak; clearing banks the time left. Cards turn on press with a 3D-style flip, and a miss turns back after
+  0.8 s. 12 symbols drawn as shapes (no emoji, which render differently per platform).
+- **Tiles** (tile-matching solitaire): free = nothing on top and open on the left or right. Solvable by construction:
+  faces are dealt in pairs along a legal removal order. A test replays that order and checks it clears every board.
+  Three layouts that grow, 2.5D tiles with blocked ones dimmed, Hint, and two Shuffles per run; stuck with no shuffle
+  left ends the run.
+- **Word Hunt**: 4 × 4 letters, two-minute rounds with a rising target, and a solver that keeps only grids holding 25+
+  words. Score by length (1/1/2/3/5/11). Drag through letters (a forgiving hit circle for diagonals, slide back to
+  undo), or type and press Enter on a keyboard. Dictionary: `public/words.txt`, built from macOS
+  `/usr/share/dict/words` (Webster's 2nd, 1934, public domain): 76,089 lowercase words of 3–8 letters, 585 KB (209 KB
+  gzipped), fetched on first play, then cached offline by the service worker. That list has only base forms, so a
+  plain plural (+s / +es) of a listed word also counts.
+- **Solitaire** (Klondike, draw one, three passes): a depth-first solver must win each deal before you see it, so
+  every deal is winnable. Its budget is 3,000 nodes, so it gives up fast on hard deals: worst ~170 ms per deal on this
+  Mac (30,000 nodes took up to 1.1 s). Tap a card to send it to its best place (foundation first) or drag a run.
+  Cards fly between places and auto-finish once everything is face up. Suits are drawn as paths. Stuck (no move, no
+  draw) or Give up (asked twice) ends the run; a win deals the next game.
+- Home shows "32 games" once everything is playable (the "On the way" section was already hidden when empty).
+- Results: `npm test` **277/277**, `npm run e2e` **81/81** on the static build, tsc and eslint clean.
+
+**Simplified on purpose:** no undo in Solitaire; draw one only (no draw three); the Word Hunt dictionary accepts
+obscure Webster words and naive plurals.
+
 ## Next up (start here on "continue")
 
-1. Finish verifying the end of session 6:
-   - Kill any leftover dev server first: `lsof -ti:4310 | xargs kill`.
-   - Run `npx tsc --noEmit && npx eslint src tests && npm test` (expect 209), then `rm -rf .next out && npm run build`,
-     then `npm run e2e`. The three "engine replies from its Web Worker" tests must still pass now that a failing worker
-     logs an error.
-   - Look at `test-results/shots/twenty48.png` (tiles, Undo button, info pill). Twenty48 is done once that's good.
-2. Phase 5, the rest: Minefield, Lights Out, Nine, Crates, Pipe Flow, Nonogram, then Turnstile (3D). Decide how
-   puzzles without a natural fail state end a run, because a best score is only recorded on `over`. Ideas: lives
-   for mistakes (Nine, Nonogram), a move budget (Lights Out, Pipe Flow), and for Crates a level pack or an "end run"
-   button.
-3. Phase 6, cards and tiles: Solitaire, Pairs, Tiles, Word Hunt. Phase 7: polish (Lighthouse, perf, README; decide
-   whether to drop the unused R3F/drei/postprocessing packages; maybe stop the raw `ai.worker.ts` copies in `out/`).
+1. Phase 7, polish: Lighthouse (PWA, performance, accessibility), a performance pass on a mid-range phone (60 fps,
+   battery saver), README, decide whether to drop the unused R3F/drei/postprocessing packages, maybe stop the raw
+   `ai.worker.ts` copies in `out/`, and a real-phone check while on a call (one thumb, haptics, resume).
+2. Optional depth from the plan: more Turnstile and Crates levels (draw them solved; the tests prove them), Stack Fall
+   T-spins, Solitaire draw three.
 
 **Adding a game quickly:** write logic + tests + index, then register (registry `load` + controls, a GameIcon glyph,
 `PLAYABLE` and the disabled count in `tests/smoke.spec.ts`, a key list in `tests/shots.spec.ts`).

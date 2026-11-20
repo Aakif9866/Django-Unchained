@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const PLAYABLE = ["coil", "glide", "flutter", "stack-fall", "brickline", "orbit", "bubble", "rally", "fruit-slice", "rail-dash", "ridge-run", "puck", "hop", "pocket-golf", "labyrinth", "drift", "helix-drop", "gambit", "four-up", "reversi", "twenty48"];
+const PLAYABLE = ["coil", "glide", "flutter", "stack-fall", "brickline", "orbit", "bubble", "rally", "fruit-slice", "rail-dash", "ridge-run", "puck", "hop", "pocket-golf", "labyrinth", "drift", "helix-drop", "gambit", "four-up", "reversi", "twenty48", "minefield", "lights-out", "nine", "nonogram", "pipe-flow", "crates", "turnstile", "pairs", "tiles", "word-hunt", "solitaire"];
 
 function watchErrors(page: Page) {
   const errors: string[] = [];
@@ -14,9 +14,9 @@ test("home lists every game and links the playable ones", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".card")).toHaveCount(32);
   for (const id of PLAYABLE) await expect(page.locator(`.game-grid a[href="/play/${id}"]`)).toBeVisible();
-  await expect(page.locator('.card[aria-disabled="true"]')).toHaveCount(11);
+  await expect(page.locator('.card[aria-disabled="true"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Puzzle" }).click();
-  await expect(page.locator(".card")).toHaveCount(9);
+  await expect(page.locator(".card")).toHaveCount(9); // every puzzle, playable or not
   expect(errors).toEqual([]);
 });
 

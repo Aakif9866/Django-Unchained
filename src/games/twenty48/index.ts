@@ -113,9 +113,12 @@ const twenty48: GameModule = {
       ctx.roundRect(ox, oy, c, c, c * 0.16);
       ctx.fill();
       ctx.restore();
-      ctx.fillStyle = "rgba(255,255,255,0.14)";
+      const sheen = ctx.createLinearGradient(0, oy, 0, oy + c * 0.55);
+      sheen.addColorStop(0, "rgba(255,255,255,0.16)");
+      sheen.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = sheen;
       ctx.beginPath();
-      ctx.roundRect(ox + c * 0.06, oy + c * 0.05, c * 0.88, c * 0.3, c * 0.12);
+      ctx.roundRect(ox, oy, c, c, c * 0.16);
       ctx.fill();
       const digits = String(v).length;
       ctx.fillStyle = text;
@@ -221,7 +224,7 @@ const twenty48: GameModule = {
         ctx.fillStyle = can ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)";
         ctx.font = "600 14px system-ui, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("↶  Undo", u.x + u.w / 2, u.y + u.h / 2 + 1);
+        ctx.fillText("Undo", u.x + u.w / 2, u.y + u.h / 2 + 1);
 
         if (toast > 0) {
           const t = Math.min(1, (2.6 - toast) / 0.3, toast * 2.5); // in, hold, out

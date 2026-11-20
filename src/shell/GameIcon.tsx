@@ -149,6 +149,90 @@ const GLYPHS: Record<string, React.ReactNode> = {
       <circle cx="23.5" cy="20" r="1.4" fill="#2c3e50" />
     </svg>
   ),
+  solitaire: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="7" y="10" width="20" height="28" rx="4" fill="#fff" opacity=".45" transform="rotate(-10 17 24)" />
+      <rect x="20" y="9" width="20" height="28" rx="4" fill="#fff" />
+      <path d="M30 18c-4 4-6 6-4 9 1.2 1.6 3 1.4 4 .2 1 1.2 2.8 1.4 4-.2 2-3 0-5-4-9Z" fill="#134e5e" />
+    </svg>
+  ),
+  "word-hunt": (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="6" y="6" width="16" height="16" rx="4" fill="#fff" />
+      <rect x="26" y="6" width="16" height="16" rx="4" fill="#fff" opacity=".45" />
+      <rect x="6" y="26" width="16" height="16" rx="4" fill="#fff" opacity=".45" />
+      <rect x="26" y="26" width="16" height="16" rx="4" fill="#fff" />
+      <path d="M14 14l20 20" stroke="#fda085" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  ),
+  tiles: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="9" y="13" width="15" height="20" rx="3" fill="#fff" opacity=".5" />
+      <rect x="20" y="9" width="15" height="20" rx="3" fill="#fff" opacity=".75" />
+      <rect x="16" y="19" width="15" height="20" rx="3" fill="#fff" />
+      <text x="23.5" y="34" textAnchor="middle" fontSize="12" fontWeight="800" fill="#8a6e2f" fontFamily="system-ui">7</text>
+    </svg>
+  ),
+  pairs: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="6" y="9" width="17" height="24" rx="4" fill="#fff" opacity=".45" transform="rotate(-8 14 21)" />
+      <rect x="23" y="13" width="17" height="24" rx="4" fill="#fff" transform="rotate(8 31 25)" />
+      <path d="M31 30c-5-3-6-6-4-8 1.3-1.3 3-1 4 .5 1-1.5 2.7-1.8 4-.5 2 2 1 5-4 8Z" fill="#c79081" />
+    </svg>
+  ),
+  turnstile: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <circle cx="24" cy="24" r="15" fill="#fff" opacity=".3" />
+      <path d="M24 9v30M9 24h15" stroke="#fff" strokeWidth="5" strokeLinecap="round" />
+      <path d="M36 10a17 17 0 0 1 5 9" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M41 19l1-5-5 1" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  crates: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="8" y="12" width="24" height="24" rx="4" fill="#fff" />
+      <path d="M12 16l16 16M12 16h16v16" stroke="#8e5e3b" strokeWidth="2.5" opacity=".6" />
+      <circle cx="40" cy="24" r="5" stroke="#fff" strokeWidth="2.5" opacity=".7" />
+    </svg>
+  ),
+  "pipe-flow": (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <path d="M8 24h16v-14M24 24v16h16M24 24h10" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="24" cy="24" r="6" fill="#fff" />
+      <circle cx="40" cy="40" r="3.5" fill="#fff" opacity=".7" />
+    </svg>
+  ),
+  nonogram: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <path d="M16 6h4M24 6h4M8 18h4M8 26h4M8 34h4" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity=".6" />
+      <rect x="16" y="14" width="8" height="8" rx="2" fill="#fff" />
+      <rect x="24" y="22" width="8" height="8" rx="2" fill="#fff" />
+      <rect x="32" y="22" width="8" height="8" rx="2" fill="#fff" />
+      <rect x="16" y="30" width="8" height="8" rx="2" fill="#fff" />
+      <rect x="24" y="30" width="8" height="8" rx="2" fill="#fff" opacity=".45" />
+    </svg>
+  ),
+  nine: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <rect x="6" y="6" width="36" height="36" rx="6" stroke="#fff" strokeWidth="2.5" opacity=".55" />
+      <path d="M18 6v36M30 6v36M6 18h36M6 30h36" stroke="#fff" strokeWidth="1.5" opacity=".4" />
+      <text x="24" y="29.5" textAnchor="middle" fontSize="15" fontWeight="800" fill="#fff" fontFamily="system-ui">9</text>
+    </svg>
+  ),
+  "lights-out": (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      {[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => (
+        <rect key={`${r}${c}`} x={6 + c * 13} y={6 + r * 13} width="10" height="10" rx="3" fill="#fff" opacity={(r + c) % 2 === 0 ? 1 : 0.3} />
+      )))}
+    </svg>
+  ),
+  minefield: (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
+      <path d="M24 9v30M9 24h30M13.4 13.4l21.2 21.2M34.6 13.4 13.4 34.6" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" />
+      <circle cx="24" cy="24" r="10" fill="#fff" />
+      <circle cx="20.5" cy="20.5" r="2.5" fill="#2c7744" />
+    </svg>
+  ),
   twenty48: (
     <svg viewBox="0 0 48 48" fill="none" aria-hidden>
       <rect x="5" y="6" width="14" height="14" rx="3.5" fill="#fff" opacity=".5" />

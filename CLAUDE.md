@@ -3,7 +3,7 @@
 @AGENTS.md
 
 **Branch:** `new-project` (orphan, separate from `main` = Django Unchained and `10-projects` = SIDEQUEST).
-**Status (2026-11-20):** Phases 1–4 done (20 games verified); Phase 5 started (Twenty48 written, not verified yet). When the user says **"continue"**, read
+**Status (2026-11-20):** Phases 1–6 done: all 32 games playable and verified. Next: Phase 7 (polish). When the user says **"continue"**, read
 `PROGRESS.md` → "Next up" and carry on from there.
 
 ## The product
