@@ -8,6 +8,7 @@ export interface Pipe {
   scored: boolean;
 }
 export interface FlutterState {
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   x: number;
   y: number;
   vy: number;
@@ -34,10 +35,11 @@ const FIRST_PIPE = 90;
 /** Scroll speed (units/s): ramps gently, caps so it stays playable one-handed. */
 export const speed = (score: number) => 38 + Math.min(score, 30) * 0.5;
 /** Gap height: generous at first, tightens to a floor. */
-export const gapFor = (score: number) => Math.max(30, 40 - score * 0.3);
+const GAP = [6, 0, -3];
+export const gapFor = (score: number, d = 1) => Math.max(30 + GAP[d], 40 + GAP[d] - score * 0.3);
 
-export function newGame(rng: Rng): FlutterState {
-  const s: FlutterState = { x: 0, y: H / 2, vy: 0, px: 0, py: H / 2, pipes: [], score: 0, started: false, alive: true, t: 0 };
+export function newGame(rng: Rng, d = 1): FlutterState {
+  const s: FlutterState = { d, x: 0, y: H / 2, vy: 0, px: 0, py: H / 2, pipes: [], score: 0, started: false, alive: true, t: 0 };
   fill(s, rng);
   return s;
 }
@@ -46,7 +48,7 @@ function fill(s: FlutterState, rng: Rng) {
   let last = s.pipes[s.pipes.length - 1];
   while (!last || last.x < s.x + AHEAD) {
     const n = s.score + s.pipes.filter((p) => !p.scored).length; // difficulty of this pipe when reached
-    const gap = gapFor(n);
+    const gap = gapFor(n, s.d ?? 1);
     const lo = 14 + gap / 2;
     const hi = H - 14 - gap / 2;
     // Consecutive gaps never jump more than 30 units, so every sequence is reachable.

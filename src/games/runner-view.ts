@@ -98,25 +98,26 @@ export function createRunnerView(stage: ThreeStage, theme: RunnerTheme, reducedM
         const m = pool.get(o.id)!;
         const zc = o.z + o.len / 2;
         const p = path(zc);
-        m.position.set(p.x + (o.kind === "gap" ? 0 : o.lane * LANE_W), p.y, zc);
+        m.position.set(p.x - (o.kind === "gap" ? 0 : o.lane * LANE_W), p.y, zc);
         m.rotation.y = yawAt(zc);
       }
       for (const pk of s.pickups) {
         const m = pool.get(pk.id)!;
         const p = path(pk.z);
-        m.position.set(p.x + pk.lane * LANE_W, p.y + pk.y + (reducedMotion ? 0 : Math.sin(clock * 3 + pk.id) * 0.12), pk.z);
+        m.position.set(p.x - pk.lane * LANE_W, p.y + pk.y + (reducedMotion ? 0 : Math.sin(clock * 3 + pk.id) * 0.12), pk.z);
         m.rotation.y = reducedMotion ? 0 : clock * 2.5 + pk.id;
       }
 
       const p = path(s.z);
-      const px = p.x + s.x * LANE_W;
+      // The chase camera looks down +z, where world +x is screen-left, so lanes are drawn mirrored: lane +1 is on the right.
+      const px = p.x - s.x * LANE_W;
       player.position.set(px, p.y + s.y, s.z);
       player.rotation.y = yawAt(s.z);
       const rolling = s.roll > 0 && s.y < 0.6;
       player.scale.set(1, rolling ? 0.5 : 1, 1);
       const bob = reducedMotion || s.y > 0 || rolling || crashed ? 0 : Math.abs(Math.sin(s.z * 1.1)) * 0.12;
       body.position.y = 0.85 + bob;
-      player.rotation.z = (s.lane - s.x) * -0.35; // lean into lane changes
+      player.rotation.z = (s.lane - s.x) * 0.35; // lean into lane changes
       player.rotation.x = crashed ? -1.2 : rolling ? 0.4 : 0;
 
       ground.update(s.z, s);

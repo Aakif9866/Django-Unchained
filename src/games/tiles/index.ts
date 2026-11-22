@@ -7,9 +7,9 @@ const GONE = 0.22; // s for a matched pair to lift away
 
 const tilesGame: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: TilesState = newGame(rng);
+    let s: TilesState = newGame(rng, difficulty);
     let sel = -1;
     let nope: { i: number; t: number } | null = null;
     let leaving: { i: number; t: number }[] = [];

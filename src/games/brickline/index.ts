@@ -26,9 +26,9 @@ interface Spark {
 
 const brickline: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: BrickState = newGame(rng);
+    let s: BrickState = newGame(rng, 0, difficulty);
     let sparks: Spark[] = [];
     let trail: { x: number; y: number }[] = [];
     let F = fitWorld(stage, insets(), W, H);

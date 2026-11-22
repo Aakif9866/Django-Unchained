@@ -1,4 +1,5 @@
 "use client";
+import type { Difficulty } from "./types";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -7,9 +8,11 @@ export interface Settings {
   sound: boolean; // silent by default: you're on a call
   battery: boolean; // 30 fps + lower resolution
 }
+/** Colour grade: swaps only the accent layer (brand mark, highlight, glow, focus); surfaces never change. */
+export const PALETTES = ["aurora", "apple", "emerald", "solar", "ocean", "titanium"] as const;
+export type Palette = (typeof PALETTES)[number];
 export interface Run {
   score: number;
-  at: number;
 }
 
 interface State {
@@ -17,6 +20,10 @@ interface State {
   bests: Record<string, number>;
   history: Record<string, Run[]>;
   recent: string[];
+  palette: Palette;
+  levels: Record<string, Difficulty>;
+  setLevel(id: string, d: Difficulty): void;
+  setPalette(p: Palette): void;
   setSetting<K extends keyof Settings>(key: K, value: Settings[K]): void;
   /** Records a finished run; returns true when it is a new personal best. */
   recordRun(id: string, score: number): boolean;
@@ -29,19 +36,23 @@ const initial = {
   bests: {},
   history: {},
   recent: [],
+  palette: "aurora" as Palette,
+  levels: {} as Record<string, Difficulty>,
 };
 
 export const useStore = create<State>()(
   persist(
     (set, get) => ({
       ...initial,
+      setPalette: (palette) => set({ palette }),
+      setLevel: (id, d) => set((s) => ({ levels: { ...s.levels, [id]: d } })),
       setSetting: (key, value) => set((s) => ({ settings: { ...s.settings, [key]: value } })),
       recordRun(id, score) {
         const prev = get().bests[id] ?? 0;
         const isBest = score > prev;
         set((s) => ({
           bests: isBest ? { ...s.bests, [id]: score } : s.bests,
-          history: { ...s.history, [id]: [{ score, at: Date.now() }, ...(s.history[id] ?? [])].slice(0, 20) },
+          history: { ...s.history, [id]: [{ score }, ...(s.history[id] ?? [])].slice(0, 20) },
         }));
         return isBest;
       },

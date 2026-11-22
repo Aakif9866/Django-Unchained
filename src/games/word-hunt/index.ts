@@ -1,12 +1,12 @@
 import type { GameModule } from "@/engine/types";
 import { banner, pill } from "../kit";
-import { N, ROUND_TIME, makeDict, newGame, nextRound, neighbours, pathFor, pointsFor, tick, trace, type Dict, type HuntState } from "./logic";
+import { N, roundTime, makeDict, newGame, nextRound, neighbours, pathFor, pointsFor, tick, trace, type Dict, type HuntState } from "./logic";
 
 const FEEDBACK = { word: "#4ade80", dup: "#fbbf24", nope: "#fb7185", short: "#fb7185" } as const;
 
 const wordHunt: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
     let dict: Dict | null = null;
     let s: HuntState | null = null;
@@ -16,7 +16,7 @@ const wordHunt: GameModule = {
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
       .then((text) => {
         dict = makeDict(text);
-        s ??= newGame(rng, dict);
+        s ??= newGame(rng, dict, difficulty);
         hot = 1;
       })
       .catch(() => {
@@ -155,7 +155,7 @@ const wordHunt: GameModule = {
 
         // Info: the clock drains along the pill; points against the target.
         pill(ctx, L.x, L.infoY, L.size, 40, null);
-        const f = s.time / ROUND_TIME;
+        const f = s.time / roundTime(s.d ?? 1);
         ctx.fillStyle = f < 0.15 ? "rgba(251,113,133,0.5)" : "rgba(253,160,133,0.3)";
         ctx.beginPath();
         ctx.roundRect(L.x + 3, L.infoY + 3, Math.max(0, (L.size - 6) * f), 34, 17);

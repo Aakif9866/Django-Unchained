@@ -18,9 +18,9 @@ const hash = (n: number) => {
 
 const flutter: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: FlutterState = newGame(rng);
+    let s: FlutterState = newGame(rng, difficulty);
     let wing = 0; // seconds since last flap, drives the wing beat
     let shake = 0;
     let puffs: Puff[] = [];

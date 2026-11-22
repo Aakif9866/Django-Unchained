@@ -1,7 +1,7 @@
 import type { GameModule } from "@/engine/types";
 import { banner, pill } from "../kit";
 import {
-  MAX_PASSES, autoFinishStep, autoTarget, canDraw, carried, draw, isRed, legal, move, newGame, nextDeal, rankOf, stuck, suitOf,
+  autoFinishStep, passesFor, autoTarget, canDraw, carried, draw, isRed, legal, move, newGame, nextDeal, rankOf, stuck, suitOf,
   type From, type SolState, type To,
 } from "./logic";
 
@@ -43,9 +43,9 @@ function suit(ctx: CanvasRenderingContext2D, s: number, cx: number, cy: number, 
 
 const solitaire: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: SolState = newGame(rng);
+    let s: SolState = newGame(rng, difficulty);
     let drag: { from: From; cards: number[]; x: number; y: number; ox: number; oy: number; moved: boolean } | null = null;
     const flights = new Map<number, { x: number; y: number; t: number }>(); // card → where it flew from
     let shake: { card: number; t: number } | null = null;
@@ -302,7 +302,7 @@ const solitaire: GameModule = {
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "rgba(255,255,255,0.92)";
-        ctx.fillText(`Deal ${s.level} · pass ${s.passes} of ${MAX_PASSES}`, L.x0 + 14, L.infoY + 21);
+        ctx.fillText(`Deal ${s.level} · pass ${s.passes}${passesFor(s) > 9 ? "" : ` of ${passesFor(s)}`}`, L.x0 + 14, L.infoY + 21);
         const g = L.giveup;
         ctx.fillStyle = confirm > 0 ? "rgba(244,63,94,0.9)" : press === "giveup" ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.06)";
         ctx.strokeStyle = "rgba(255,255,255,0.1)";

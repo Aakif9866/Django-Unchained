@@ -3,12 +3,14 @@
  * A 4 × 4 grid of letters. Trace a word through neighbouring cells (diagonals count, no cell twice).
  * Words need 3+ letters and must be in the dictionary; a plain plural of a listed word (+s / +es) counts too,
  * because the bundled list (Webster's 2nd, public domain) only has base forms.
- * Each round lasts two minutes and has a target; reach it to play the next round, miss it and the run ends.
+ * Each round lasts 150 / 120 / 90 s (Easy / Medium / Hard) and has a target; reach it to play the next round, miss it and the run ends.
  */
 import type { Rng } from "@/engine/rng";
 
 export const N = 4;
 export const ROUND_TIME = 120;
+/** Seconds per round: 150 / 120 / 90. */
+export const roundTime = (d = 1) => [150, ROUND_TIME, 90][d];
 export interface Dict {
   words: string[]; // sorted
   set: Set<string>;
@@ -21,6 +23,7 @@ export interface HuntState {
   possible: number; // words the grid holds (for the end-of-round tally)
   time: number;
   level: number;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   score: number;
   alive: boolean;
   roundOver: boolean;
@@ -98,7 +101,7 @@ const LETTERS = "eeeeeeeeeeeeaaaaaaaaarrrrrriiiiiiiiooooooootttttttnnnnnnnssssss
 
 export const targetFor = (level: number) => 8 + level * 4;
 
-export function newRound(level: number, score: number, rng: Rng, d: Dict): HuntState {
+export function newRound(level: number, score: number, rng: Rng, d: Dict, lv = 1): HuntState {
   const target = targetFor(level);
   for (;;) {
     const grid = Array.from({ length: N * N }, () => rng.pick([...LETTERS]));
@@ -107,11 +110,11 @@ export function newRound(level: number, score: number, rng: Rng, d: Dict): HuntS
     const all = [...solve(grid, d)];
     const possible = all.reduce((n, w) => n + pointsFor(w), 0);
     if (all.length >= 25 && possible >= target * 4)
-      return { grid, found: [], points: 0, target, possible: all.length, time: ROUND_TIME, level, score, alive: true, roundOver: false };
+      return { grid, found: [], points: 0, target, possible: all.length, time: roundTime(lv), level, score, alive: true, roundOver: false, d: lv };
   }
 }
-export const newGame = (rng: Rng, d: Dict) => newRound(1, 0, rng, d);
-export const nextRound = (s: HuntState, rng: Rng, d: Dict) => Object.assign(s, newRound(s.level + 1, s.score, rng, d));
+export const newGame = (rng: Rng, d: Dict, lv = 1) => newRound(1, 0, rng, d, lv);
+export const nextRound = (s: HuntState, rng: Rng, d: Dict) => Object.assign(s, newRound(s.level + 1, s.score, rng, d, s.d ?? 1));
 
 export type Tried = "word" | "dup" | "short" | "nope";
 

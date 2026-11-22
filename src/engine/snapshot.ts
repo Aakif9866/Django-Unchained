@@ -3,7 +3,6 @@ import { del, get, keys, set } from "idb-keyval";
 
 export interface Snapshot {
   v: number; // game's snapshot version; a mismatch discards the save instead of crashing
-  at: number;
   rng: number;
   game: unknown;
 }

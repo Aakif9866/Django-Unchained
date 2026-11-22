@@ -15,11 +15,14 @@ export interface NonoState {
   cols: number[][];
   mistakes: number;
   level: number;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   score: number;
   alive: boolean;
   solved: boolean;
 }
 export const MAX_MISTAKES = 3;
+/** Mistakes allowed: 5 / 3 / 1. */
+export const maxMistakes = (s: { d?: number }) => [5, 3, 1][s.d ?? 1];
 
 export const sizeFor = (level: number) => (level <= 2 ? 5 : level <= 5 ? 8 : 10);
 export const clueOf = (line: number[]) => {
@@ -90,7 +93,7 @@ export function lineSolve(rows: number[][], cols: number[][]): number[] | null {
   return g.includes(-1) ? null : g;
 }
 
-function puzzle(level: number, score: number, rng: Rng): NonoState {
+function puzzle(level: number, score: number, rng: Rng, d = 1): NonoState {
   const n = sizeFor(level);
   for (;;) {
     // Clumped noise: a few random seeds, grown into neighbours, so the picture has shape.
@@ -113,12 +116,12 @@ function puzzle(level: number, score: number, rng: Rng): NonoState {
     const rows = Array.from({ length: n }, (_, r) => clueOf(rowOf(g, n, r)));
     const cols = Array.from({ length: n }, (_, c) => clueOf(colOf(g, n, c)));
     if (lineSolve(rows, cols))
-      return { n, solution: g, marks: Array(n * n).fill(EMPTY), rows, cols, mistakes: 0, level, score, alive: true, solved: false };
+      return { n, solution: g, marks: Array(n * n).fill(EMPTY), rows, cols, mistakes: 0, level, score, alive: true, solved: false, d };
   }
 }
 
-export const newGame = (rng: Rng) => puzzle(1, 0, rng);
-export const nextPuzzle = (s: NonoState, rng: Rng) => Object.assign(s, puzzle(s.level + 1, s.score, rng));
+export const newGame = (rng: Rng, d = 1) => puzzle(1, 0, rng, d);
+export const nextPuzzle = (s: NonoState, rng: Rng) => Object.assign(s, puzzle(s.level + 1, s.score, rng, s.d ?? 1));
 
 export type Marked = "ok" | "mistake" | "solved" | null;
 
@@ -129,7 +132,7 @@ export function mark(s: NonoState, cell: number, as: typeof FILL | typeof CROSS)
   s.marks[cell] = truth;
   if (truth !== as) {
     s.mistakes++;
-    if (s.mistakes >= MAX_MISTAKES) s.alive = false;
+    if (s.mistakes >= maxMistakes(s)) s.alive = false;
     return "mistake";
   }
   if (as === FILL) s.score += 2 * s.level;

@@ -7,7 +7,9 @@
  */
 import type { Rng } from "@/engine/rng";
 
-export const MAX_PASSES = 3; // times through the stock
+export const MAX_PASSES = 3; // times through the stock (Medium)
+export const PASSES = [99, MAX_PASSES, 2]; // Easy is unlimited in practice
+export const passesFor = (s: { maxPasses?: number }) => s.maxPasses ?? MAX_PASSES;
 export const suitOf = (c: number) => Math.floor(c / 13);
 export const rankOf = (c: number) => (c % 13) + 1;
 export const isRed = (c: number) => suitOf(c) === 1 || suitOf(c) === 2;
@@ -19,6 +21,7 @@ export interface SolState {
   waste: number[]; // top = last
   found: number[][]; // by suit
   passes: number; // passes through the stock started (1 at the deal)
+  maxPasses?: number; // by difficulty (missing = MAX_PASSES)
   level: number;
   score: number;
   alive: boolean;
@@ -89,14 +92,14 @@ export function draw(s: SolState): boolean {
     s.waste.push(s.stock.pop()!);
     return true;
   }
-  if (!s.waste.length || s.passes >= MAX_PASSES) return false;
+  if (!s.waste.length || s.passes >= passesFor(s)) return false;
   s.stock = s.waste.reverse();
   s.waste = [];
   s.passes++;
   return true;
 }
 
-export const canDraw = (s: SolState) => s.stock.length > 0 || (s.waste.length > 0 && s.passes < MAX_PASSES);
+export const canDraw = (s: SolState) => s.stock.length > 0 || (s.waste.length > 0 && s.passes < passesFor(s));
 
 /** Where a tapped card should go: a foundation if it can, else the first tableau column that takes it. */
 export function autoTarget(s: SolState, f: From): To | null {
@@ -171,14 +174,14 @@ export function winnable(start: SolState, budget = 3000): boolean { // small bud
 const score = (s: SolState, f: From, t: To) =>
   (t.kind === "found" ? 100 : 0) + (f.kind === "tab" && f.idx === s.down[f.col] && s.down[f.col] > 0 ? 50 : 0) + (f.kind === "waste" ? 10 : 0);
 
-export function newDeal(level: number, score: number, rng: Rng): SolState {
+export function newDeal(level: number, score: number, rng: Rng, maxPasses = MAX_PASSES): SolState {
   for (;;) {
-    const s: SolState = { ...dealCards(rng), level, score, alive: true, won: false };
+    const s: SolState = { ...dealCards(rng), level, score, alive: true, won: false, maxPasses };
     if (winnable(s)) return s;
   }
 }
-export const newGame = (rng: Rng) => newDeal(1, 0, rng);
-export const nextDeal = (s: SolState, rng: Rng) => Object.assign(s, newDeal(s.level + 1, s.score, rng));
+export const newGame = (rng: Rng, d = 1) => newDeal(1, 0, rng, PASSES[d]);
+export const nextDeal = (s: SolState, rng: Rng) => Object.assign(s, newDeal(s.level + 1, s.score, rng, passesFor(s)));
 
 /** When every card is face up and the stock is spent, the next card that can go to a foundation. */
 export function autoFinishStep(s: SolState): [From, To] | null {

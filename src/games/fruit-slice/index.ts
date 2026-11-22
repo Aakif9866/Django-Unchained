@@ -32,9 +32,9 @@ interface Drop {
 
 const fruitSlice: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: FruitState = newGame();
+    let s: FruitState = newGame(difficulty);
     let F = fitWorld(stage, insets(), W, H, 0);
     let halves: Half[] = [];
     let drops: Drop[] = [];

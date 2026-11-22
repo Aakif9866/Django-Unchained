@@ -34,7 +34,7 @@ const GAMES: Record<string, string[]> = {
   minefield: ["Space", "Space", "wait", "wait", "ArrowUp", "ArrowUp", "ArrowUp", "ArrowUp", "KeyC", "ArrowLeft", "wait"],
   twenty48: ["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "ArrowUp", "wait", "wait"],
   reversi: ["Space", "Space", "wait", "wait", "wait", "wait", "wait", "wait", "wait", "wait"],
-  gambit: ["Space", "Space", "ArrowUp", "ArrowUp", "Space", "wait", "wait", "wait", "wait", "wait", "wait", "ArrowDown", "ArrowDown", "ArrowDown", "ArrowRight", "ArrowRight", "Space", "wait"],
+  jigsaw: ["wait", "Space", "Space", "Space", "Space", "Space", "wait"],
 };
 
 test("home", async ({ page }) => {

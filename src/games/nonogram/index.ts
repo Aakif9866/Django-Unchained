@@ -1,13 +1,13 @@
 import type { Action } from "@/engine/input";
 import type { GameModule } from "@/engine/types";
 import { banner, pill } from "../kit";
-import { CROSS, EMPTY, FILL, MAX_MISTAKES, lineDone, mark, newGame, nextPuzzle, type NonoState } from "./logic";
+import { CROSS, EMPTY, FILL, maxMistakes, lineDone, mark, newGame, nextPuzzle, type NonoState } from "./logic";
 
 const nonogram: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: NonoState = newGame(rng);
+    let s: NonoState = newGame(rng, difficulty);
     let mode: typeof FILL | typeof CROSS = FILL;
     // A drag paints along the row or column it starts moving in.
     let paint: { r0: number; c0: number; axis: "r" | "c" | null } | null = null;
@@ -151,9 +151,9 @@ const nonogram: GameModule = {
         ctx.textAlign = "left";
         ctx.fillStyle = "rgba(255,255,255,0.92)";
         ctx.fillText(`Picture ${s.level} · ${n}×${n}`, L.infoX + 16, L.infoY + 21);
-        for (let k = 0; k < MAX_MISTAKES; k++) {
-          const hx = L.infoX + L.infoW - 20 - (MAX_MISTAKES - 1 - k) * 22, hy = L.infoY + 20;
-          ctx.fillStyle = k < MAX_MISTAKES - s.mistakes ? "#ff5c7a" : "rgba(255,255,255,0.15)";
+        for (let k = 0; k < maxMistakes(s); k++) {
+          const hx = L.infoX + L.infoW - 20 - (maxMistakes(s) - 1 - k) * 22, hy = L.infoY + 20;
+          ctx.fillStyle = k < maxMistakes(s) - s.mistakes ? "#ff5c7a" : "rgba(255,255,255,0.15)";
           ctx.beginPath();
           ctx.moveTo(hx, hy + 6);
           ctx.bezierCurveTo(hx - 10, hy - 2, hx - 5, hy - 9, hx, hy - 4);
@@ -260,7 +260,7 @@ const nonogram: GameModule = {
         if (s.solved)
           banner(ctx, { cx: W / 2, cy: L.y + L.g / 2, w: Math.min(W - 40, 300), title: "Picture done", detail: `+${150 * s.level - 30 * s.mistakes}`, hint: `Tap for picture ${s.level + 1}`, t: shown, colors: ["#a5b4fc", "#c084fc"], reducedMotion });
         else if (!s.alive)
-          banner(ctx, { cx: W / 2, cy: L.y + L.g / 2, w: Math.min(W - 40, 300), title: "Three mistakes", detail: `Picture ${s.level} · ${s.score} points`, hint: "", t: shown, colors: ["#ffb199", "#ff5c7a"], reducedMotion });
+          banner(ctx, { cx: W / 2, cy: L.y + L.g / 2, w: Math.min(W - 40, 300), title: "Out of mistakes", detail: `Picture ${s.level} · ${s.score} points`, hint: "", t: shown, colors: ["#ffb199", "#ff5c7a"], reducedMotion });
       },
 
       serialize: () => s,

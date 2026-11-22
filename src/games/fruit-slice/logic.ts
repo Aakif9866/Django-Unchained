@@ -24,6 +24,7 @@ export interface Item {
   sliced: boolean;
 }
 export interface FruitState {
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   items: Item[];
   nextId: number;
   wave: number; // seconds until the next toss
@@ -40,16 +41,17 @@ export interface Cut {
 export type Event = "miss" | "dead";
 
 export const waveGap = (t: number) => Math.max(0.85, 2.1 - t / 50);
-export const bombChance = (t: number) => Math.min(0.22, 0.06 + t / 600);
+const BOMB = [0.6, 1, 1.4];
+export const bombChance = (t: number, d = 1) => Math.min(0.22, 0.06 + t / 600) * BOMB[d];
 
-export function newGame(): FruitState {
-  return { items: [], nextId: 1, wave: 0.6, t: 0, lives: LIVES, score: 0, combo: { swipe: -1, n: 0 }, alive: true };
+export function newGame(d = 1): FruitState {
+  return { d, items: [], nextId: 1, wave: 0.6, t: 0, lives: LIVES, score: 0, combo: { swipe: -1, n: 0 }, alive: true };
 }
 
 function toss(s: FruitState, rng: Rng) {
   const n = Math.min(5, 1 + Math.floor(rng.next() * (1.5 + s.t / 25)));
   for (let i = 0; i < n; i++) {
-    const bomb = rng.next() < bombChance(s.t);
+    const bomb = rng.next() < bombChance(s.t, s.d ?? 1);
     const r = bomb ? 6 : 6.5 + rng.next() * 3;
     const x = 15 + rng.next() * 70;
     const apex = 55 + rng.next() * 55; // how high it climbs from the bottom

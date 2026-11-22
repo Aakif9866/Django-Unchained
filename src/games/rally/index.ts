@@ -7,9 +7,9 @@ const CPU = ["#f15bb5", "#9b5de5"];
 
 const rally: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: RallyState = newGame(rng);
+    let s: RallyState = newGame(rng, difficulty);
     let F = fitWorld(stage, insets(), W, H);
     let drag: { p0: number } | null = null;
     let trail: { x: number; y: number }[] = [];

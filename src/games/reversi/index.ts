@@ -10,9 +10,9 @@ const LIME = "#a8e063";
 
 const reversi: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: ReversiState = newGame();
+    let s: ReversiState = newGame([1, 2, 3][difficulty]);
     const ai = createThinker<{ board: number[]; turn: Color; level: number; seed: number }>(
       () => new Worker(new URL("./ai.worker.ts", import.meta.url)),
       (q) => think(q.board, q.turn, q.level, createRng(q.seed), () => performance.now()).move,

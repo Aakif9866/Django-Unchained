@@ -142,11 +142,10 @@ const GLYPHS: Record<string, React.ReactNode> = {
       <rect x="28" y="4" width="12" height="7" rx="2" fill="#fff" transform="rotate(-30 34 7)" />
     </svg>
   ),
-  gambit: (
+  jigsaw: (
     <svg viewBox="0 0 48 48" fill="none" aria-hidden>
-      <path d="M8 8h8v8H8zM24 8h8v8h-8zM16 16h8v8h-8zM32 16h8v8h-8zM8 24h8v8H8zM24 24h8v8h-8zM16 32h8v8h-8zM32 32h8v8h-8z" fill="#fff" opacity=".22" />
-      <path d="M20 40c-1-5 1-9 5-12-3 0-6 0-8-1-2-2-2-4 0-6l7-8 2-6 2 4c7 0 13 6 13 15 0 5 0 10-1 14Z" fill="#fff" />
-      <circle cx="23.5" cy="20" r="1.4" fill="#2c3e50" />
+      <path d="M8 10h9a4 4 0 1 1 8 0h9v9a4 4 0 1 0 0 8v11h-9a4 4 0 1 0-8 0H8V27a4 4 0 1 1 0-8Z" fill="#fff" />
+      <path d="M17 24l4 4 9-9" stroke="#5b247a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   solitaire: (

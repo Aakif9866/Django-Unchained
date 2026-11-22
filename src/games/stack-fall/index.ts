@@ -18,9 +18,9 @@ const FLICK = 1100; // px/s for a hard drop / hold flick
 
 const stackFall: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: StackState = newGame(rng);
+    let s: StackState = newGame(rng, [1, 4, 8][difficulty]);
     let flashes: { rows: number[]; t: number }[] = [];
     let trail: { cells: [number, number][]; k: Kind; t: number; dist: number } | null = null;
     let L = layout();
@@ -171,18 +171,20 @@ const stackFall: GameModule = {
 
         // Top strip: hold · stats · next.
         const sy = L.stripY;
-        const box = L.strip;
-        panel(L.x, sy, box, box);
-        panel(L.x + L.bw - box * 2.2, sy, box * 2.2, box);
+        // Panels shrink with the well, so on a narrow phone hold / stats / next never overlap.
+        const box = Math.min(L.strip, Math.floor(L.bw / 4.3)); // hold + stats + next (2.2×) always fit
+        const ms = box / 64;
+        panel(L.x, sy, box, L.strip);
+        panel(L.x + L.bw - box * 2.2, sy, box * 2.2, L.strip);
         ctx.font = "600 10px system-ui, sans-serif";
         ctx.fillStyle = "rgba(255,255,255,0.5)";
         ctx.textAlign = "left";
         ctx.fillText("HOLD", L.x + 10, sy + 15);
         ctx.fillText("NEXT", L.x + L.bw - box * 2.2 + 10, sy + 15);
-        mini(s.hold, L.x + box / 2, sy + box / 2 + 6, 11, !s.canHold);
-        mini(s.bag[0], L.x + L.bw - box * 1.55, sy + box / 2 + 6, 11, false);
-        mini(s.bag[1], L.x + L.bw - box * 0.85, sy + box / 2 + 4, 8, false);
-        mini(s.bag[2], L.x + L.bw - box * 0.32, sy + box / 2 + 4, 6, false);
+        mini(s.hold, L.x + box / 2, sy + L.strip / 2 + 6, 11 * ms, !s.canHold);
+        mini(s.bag[0], L.x + L.bw - box * 1.55, sy + L.strip / 2 + 6, 11 * ms, false);
+        mini(s.bag[1], L.x + L.bw - box * 0.85, sy + L.strip / 2 + 4, 8 * ms, false);
+        mini(s.bag[2], L.x + L.bw - box * 0.32, sy + L.strip / 2 + 4, 6 * ms, false);
         ctx.textAlign = "center";
         const mid = (L.x + box + L.x + L.bw - box * 2.2) / 2;
         ctx.fillStyle = "rgba(255,255,255,0.5)";

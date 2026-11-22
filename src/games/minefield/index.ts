@@ -10,9 +10,9 @@ const NUM = ["", "#7dd3fc", "#86efac", "#fda4af", "#c4b5fd", "#fdba74", "#67e8f9
 
 const minefield: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: MineState = newGame();
+    let s: MineState = newGame(difficulty);
     const opening = new Map<number, number>(); // cell → time since its ripple started (negative = waiting)
     let mode: "dig" | "flag" = "dig";
     let hold: { cell: number; t: number; fired: boolean; moved: boolean } | null = null;

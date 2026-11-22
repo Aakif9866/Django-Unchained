@@ -25,6 +25,7 @@ export interface RallyState {
   serveDir: 1 | -1; // +1 = toward you
   pts: { you: number; cpu: number };
   level: number;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   aiTarget: number;
   aiClock: number;
   score: number;
@@ -32,16 +33,18 @@ export interface RallyState {
 }
 export type Event = "hit" | "wall" | "point-you" | "point-cpu" | "match" | "dead";
 
+/** Easy plays the AI a level softer, Hard 1.5 levels sharper. */
+export const aiFor = (s: { level: number; d?: number }) => ai(s.level + [-1, 0, 1.5][s.d ?? 1]);
 export const ai = (level: number) => ({
   reaction: Math.max(0.05, 0.2 - level * 0.025),
   speed: 52 + level * 9,
   error: Math.max(1.5, 9 - level * 1.4),
 });
 
-export function newGame(rng: Rng): RallyState {
+export function newGame(rng: Rng, d = 1): RallyState {
   const s: RallyState = {
     you: W / 2, cpu: W / 2, ball: { x: W / 2, y: H / 2, vx: 0, vy: 0 }, serve: SERVE_DELAY, serveDir: 1,
-    pts: { you: 0, cpu: 0 }, level: 0, aiTarget: W / 2, aiClock: 0, score: 0, alive: true,
+    pts: { you: 0, cpu: 0 }, level: 0, aiTarget: W / 2, aiClock: 0, score: 0, alive: true, d,
   };
   resetBall(s, rng);
   return s;
@@ -82,7 +85,7 @@ function paddleHit(s: RallyState, px: number, dir: 1 | -1) {
 export function step(s: RallyState, dt: number, rng: Rng): Event[] {
   const ev: Event[] = [];
   if (!s.alive) return ev;
-  const A = ai(s.level);
+  const A = aiFor(s);
 
   // AI: re-read the ball on its reaction clock, then glide toward the target.
   s.aiClock -= dt;

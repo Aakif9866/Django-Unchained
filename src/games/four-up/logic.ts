@@ -120,8 +120,8 @@ function startGame(games: number) {
   return { grid: Array(ROWS * COLS).fill(0), turn: 1 as Color, you: (games % 2 === 0 ? 1 : -1) as Color, last: -1, ply: 0, line: [], result: null };
 }
 
-export function newGame(): FourState {
-  return { level: 1, games: 0, score: 0, ...startGame(0) };
+export function newGame(level = 1): FourState {
+  return { level, games: 0, score: 0, ...startGame(0) };
 }
 
 /** Drop a disc for whoever's turn it is. Returns the cell it lands in, or -1 if the column is full or the game is over. */

@@ -13,6 +13,7 @@ export interface PairsState {
   open: number[]; // face-up, unmatched cards (0–2)
   time: number; // seconds left
   level: number;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   score: number;
   streak: number; // matches in a row, for a bonus
   alive: boolean;
@@ -20,14 +21,15 @@ export interface PairsState {
 }
 export const SYMBOLS = 12;
 
-export function sizeFor(level: number) {
+const TIME_K = [1.3, 1, 0.75];
+export function sizeFor(level: number, d = 1) {
   const sizes: [number, number][] = [[3, 4], [4, 4], [4, 5], [4, 6]];
   const [cols, rows] = sizes[Math.min(level, sizes.length) - 1];
-  return { cols, rows, time: (cols * rows) * 3.5 + 10 };
+  return { cols, rows, time: Math.round(((cols * rows) * 3.5 + 10) * TIME_K[d]) };
 }
 
-function board(level: number, score: number, rng: Rng): PairsState {
-  const { cols, rows, time } = sizeFor(level);
+function board(level: number, score: number, rng: Rng, d = 1): PairsState {
+  const { cols, rows, time } = sizeFor(level, d);
   const n = (cols * rows) / 2;
   const ids = Array.from({ length: SYMBOLS }, (_, i) => i);
   const pick: number[] = [];
@@ -37,10 +39,10 @@ function board(level: number, score: number, rng: Rng): PairsState {
     const j = rng.int(0, i);
     [cards[i], cards[j]] = [cards[j], cards[i]];
   }
-  return { cols, rows, cards, matched: cards.map(() => false), open: [], time, level, score, streak: 0, alive: true, cleared: false };
+  return { cols, rows, cards, matched: cards.map(() => false), open: [], time, level, score, streak: 0, alive: true, cleared: false, d };
 }
-export const newGame = (rng: Rng) => board(1, 0, rng);
-export const nextBoard = (s: PairsState, rng: Rng) => Object.assign(s, board(s.level + 1, s.score, rng));
+export const newGame = (rng: Rng, d = 1) => board(1, 0, rng, d);
+export const nextBoard = (s: PairsState, rng: Rng) => Object.assign(s, board(s.level + 1, s.score, rng, s.d ?? 1));
 
 export type Flipped = "open" | "match" | "miss" | "cleared" | null;
 

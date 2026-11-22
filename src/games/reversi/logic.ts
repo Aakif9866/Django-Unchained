@@ -137,8 +137,8 @@ function startGame(games: number) {
   return { board, turn: 1 as Color, you: (games % 2 === 0 ? 1 : -1) as Color, last: -1, ply: 0, passed: 0 as const, result: null };
 }
 
-export function newGame(): ReversiState {
-  return { level: 1, games: 0, score: 0, ...startGame(0) };
+export function newGame(level = 1): ReversiState {
+  return { level, games: 0, score: 0, ...startGame(0) };
 }
 
 /** Place a disc for the side to move. Returns the flipped squares, or null if the move is illegal. */

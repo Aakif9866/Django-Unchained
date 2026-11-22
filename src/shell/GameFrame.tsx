@@ -8,8 +8,9 @@ import { createRng, type Rng } from "@/engine/rng";
 import { clearSnapshot, loadSnapshot, saveSnapshot, type Snapshot } from "@/engine/snapshot";
 import { createCanvasStage, createThreeStage, type Stage } from "@/engine/stage";
 import { batterySaver, useStore } from "@/engine/store";
-import type { GameEvent, GameInstance, GameModule } from "@/engine/types";
-import { getGame, gradientCss } from "@/games/registry";
+import type { Difficulty, GameEvent, GameInstance, GameModule } from "@/engine/types";
+import { getGame, gradientCss, SPEED } from "@/games/registry";
+import { GameIcon } from "./GameIcon";
 import { Sheet } from "./Sheet";
 
 type Phase = "loading" | "ready" | "playing" | "paused" | "over" | "error";
@@ -23,6 +24,20 @@ interface Runtime {
 
 const AUTOSAVE_MS = 4000;
 const noop = () => () => {};
+const LEVELS = ["Easy", "Medium", "Hard"] as const;
+
+/** Easy / Medium / Hard segmented control. */
+function LevelPicker({ value, onChange }: { value: Difficulty; onChange(d: Difficulty): void }) {
+  return (
+    <div className="seg mb-4" role="radiogroup" aria-label="Difficulty">
+      {LEVELS.map((l, i) => (
+        <button key={l} role="radio" aria-checked={value === i} className="seg-btn" onClick={() => onChange(i as Difficulty)}>
+          {l}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function GameFrame({ id }: { id: string }) {
   const meta = getGame(id)!;
@@ -32,11 +47,12 @@ export function GameFrame({ id }: { id: string }) {
   const mod = useRef<GameModule | null>(null);
   const rt = useRef<Runtime | null>(null);
   const scoreRef = useRef(0);
+  const levelRef = useRef<Difficulty>(1); // difficulty of the run on screen
   const phaseRef = useRef<Phase>("loading");
   const [phase, setPhaseState] = useState<Phase>("loading");
   const [score, setScore] = useState(0);
-  const [resumed, setResumed] = useState<number | null>(null); // minutes since the saved run, when we came back to one
-  const [result, setResult] = useState<{ score: number; best: number; isBest: boolean } | null>(null);
+  const [resumed, setResumed] = useState(false); // came back to a saved run
+  const [result, setResult] = useState<{ score: number; best: number; prevBest: number; isBest: boolean; runs: number; avg: number } | null>(null);
   const fsSupported = useSyncExternalStore(noop, () => !!document.fullscreenEnabled, () => false);
 
   const setPhase = useCallback((p: Phase) => {
@@ -53,7 +69,9 @@ export function GameFrame({ id }: { id: string }) {
       void clearSnapshot(id);
       const prevBest = useStore.getState().bests[id] ?? 0;
       const isBest = useStore.getState().recordRun(id, final);
-      setResult({ score: final, best: Math.max(prevBest, final), isBest });
+      const runs = useStore.getState().history[id] ?? [];
+      const avg = runs.length ? Math.round(runs.reduce((n, r) => n + r.score, 0) / runs.length) : final;
+      setResult({ score: final, best: Math.max(prevBest, final), prevBest, isBest, runs: runs.length, avg });
       // Let the crash animation play out before freezing the frame.
       setTimeout(() => {
         if (phaseRef.current === "over") r.loop.stop();
@@ -65,7 +83,7 @@ export function GameFrame({ id }: { id: string }) {
   const save = useCallback(() => {
     const r = rt.current;
     if (!r || (phaseRef.current !== "playing" && phaseRef.current !== "paused")) return;
-    const snap: Snapshot = { v: meta.version, at: Date.now(), rng: r.rng.state(), game: { g: r.game.serialize(), score: scoreRef.current } };
+    const snap: Snapshot = { v: meta.version, rng: r.rng.state(), game: { g: r.game.serialize(), score: scoreRef.current, d: levelRef.current } };
     void saveSnapshot(id, snap);
   }, [id, meta.version]);
 
@@ -89,6 +107,9 @@ export function GameFrame({ id }: { id: string }) {
       const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
       const input = createInput(host);
       const rng = createRng();
+      const saved = snap?.game as { g: unknown; score: number; d?: Difficulty } | undefined;
+      const difficulty: Difficulty = !meta.levels ? 1 : saved ? (saved.d ?? 1) : (useStore.getState().levels[id] ?? 1);
+      levelRef.current = difficulty;
       const insets = () => ({
         top: hudRef.current?.offsetHeight ?? 64,
         bottom: (probeRef.current?.offsetHeight ?? 0) + 12,
@@ -105,15 +126,14 @@ export function GameFrame({ id }: { id: string }) {
       if (m.kind === "2d") {
         const s = createCanvasStage(host, maxDpr);
         stage = s;
-        game = m.create({ stage: s, input, rng, emit, insets, reducedMotion });
+        game = m.create({ stage: s, input, rng, emit, insets, reducedMotion, difficulty });
       } else {
         const s = createThreeStage(host, maxDpr);
         stage = s;
-        game = m.create({ stage: s, input, rng, emit, insets, reducedMotion });
+        game = m.create({ stage: s, input, rng, emit, insets, reducedMotion, difficulty });
       }
-      if (snap) {
+      if (snap && saved) {
         rng.setState(snap.rng);
-        const saved = snap.game as { g: unknown; score: number };
         game.restore(saved.g);
         scoreRef.current = saved.score;
         setScore(saved.score);
@@ -122,7 +142,7 @@ export function GameFrame({ id }: { id: string }) {
         setScore(0);
       }
       const loop = createLoop(
-        (dt) => game.update(dt),
+        (dt) => game.update(meta.realtime ? dt * SPEED[difficulty] : dt),
         (a) => game.render(a),
         () => (batterySaver() ? 30 : 60),
       );
@@ -130,7 +150,7 @@ export function GameFrame({ id }: { id: string }) {
       // Paint one frame so the board shows behind the start / resume sheet.
       requestAnimationFrame(() => rt.current?.game.render(0));
     },
-    [onOver],
+    [onOver, id, meta],
   );
 
   const play = useCallback(() => {
@@ -153,7 +173,7 @@ export function GameFrame({ id }: { id: string }) {
 
   const restart = () => {
     void clearSnapshot(id);
-    setResumed(null);
+    setResumed(false);
     setResult(null);
     boot(null);
     play();
@@ -170,7 +190,7 @@ export function GameFrame({ id }: { id: string }) {
         mod.current = m.default;
         boot(snap);
         if (snap) {
-          setResumed(Math.max(1, Math.round((Date.now() - snap.at) / 60000)));
+          setResumed(true);
           setPhase("paused");
         } else setPhase("ready");
       } catch {
@@ -215,6 +235,11 @@ export function GameFrame({ id }: { id: string }) {
   };
 
   const best = useStore((s) => s.bests[id] ?? 0);
+  const level = useStore((s) => s.levels[id] ?? 1);
+  const pickLevel = (d: Difficulty) => {
+    useStore.getState().setLevel(id, d);
+    if (phaseRef.current === "ready") boot(null); // the board behind the sheet matches the new level
+  };
 
   return (
     <main className="frame">
@@ -262,17 +287,18 @@ export function GameFrame({ id }: { id: string }) {
         <h2 className="t-title">{meta.name}</h2>
         <p className="t-body mt-1">{meta.tagline}</p>
         <p className="t-caption mt-3 mb-5">{meta.controls} · Two-finger tap or Esc pauses</p>
-        <button className="btn btn-cta w-full" onClick={play}>Play</button>
+        {meta.levels && <LevelPicker value={level} onChange={pickLevel} />}
+        <button className="btn btn-cta w-full" onClick={play} data-autofocus>Play</button>
         {best > 0 && <p className="t-caption mt-3 text-center">Your best: {best}</p>}
       </Sheet>
 
       <Sheet open={phase === "paused"} onDismiss={play} label="Paused">
         <h2 className="t-title">{resumed ? "Welcome back" : "Paused"}</h2>
         <p className="t-body mt-1 mb-5">
-          {resumed ? `Your run is right where you left it, ${resumed} min ago. Score ${score}.` : `Score ${score}. Your game is saved.`}
+          {resumed ? `Your run is right where you left it. Score ${score}.` : `Score ${score}. Your game is saved.`}
         </p>
         <div className="flex flex-col gap-2.5">
-          <button className="btn btn-cta w-full" onClick={() => { setResumed(null); play(); }}>Resume</button>
+          <button className="btn btn-cta w-full" onClick={() => { setResumed(false); play(); }}>Resume</button>
           <div className="flex gap-2.5">
             <button className="btn flex-1" onClick={restart}>Restart</button>
             <Link href="/" className="btn flex-1">Library</Link>
@@ -280,12 +306,32 @@ export function GameFrame({ id }: { id: string }) {
         </div>
       </Sheet>
 
-      <Sheet open={phase === "over"} label="Game over">
-        <div className="t-caption uppercase">{result?.isBest ? "New personal best" : "Game over"}</div>
-        <div className={`t-score mt-1 text-6xl ${result?.isBest ? "brand-text" : ""}`}>{result?.score ?? 0}</div>
-        <p className="t-body mt-1 mb-5">Best {result?.best ?? best}</p>
-        <div className="flex gap-2.5">
-          <button className="btn btn-cta flex-1" onClick={restart}>Play again</button>
+      <Sheet open={phase === "over"} label="Game over" center>
+        <div className="flex items-center gap-3">
+          <span className="tile shrink-0" style={{ backgroundImage: gradientCss(meta), width: 48, maxWidth: "none" }}>
+            <GameIcon game={meta} />
+          </span>
+          <div className="min-w-0">
+            <div className="t-eyebrow text-[0.7rem]">{result?.isBest ? "New personal best" : "Game over"}</div>
+            <div className="t-title truncate">{meta.name}</div>
+          </div>
+        </div>
+        <div className="mt-5 text-center">
+          <div className="t-caption uppercase tracking-[.14em]">Score</div>
+          <div className={`t-score mt-1 text-[clamp(3.5rem,14vw,4.75rem)] leading-none ${result?.isBest ? "brand-text" : ""}`}>{result?.score ?? 0}</div>
+        </div>
+        <div className="stats mt-5" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+          <div><div className="v">{result?.best ?? best}</div><div className="l">Best</div></div>
+          <div>
+            <div className="v">{result ? (result.isBest ? result.prevBest : result.best - result.score) : 0}</div>
+            <div className="l">{result?.isBest ? "Previous best" : "Off your best"}</div>
+          </div>
+          <div><div className="v">{result?.runs ?? 1}</div><div className="l">Runs played</div></div>
+          <div><div className="v">{result?.avg ?? 0}</div><div className="l">Your average</div></div>
+        </div>
+        {meta.levels && <div className="mt-5 -mb-1"><LevelPicker value={level} onChange={pickLevel} /></div>}
+        <div className="mt-5 flex gap-2.5">
+          <button className="btn btn-cta flex-1" onClick={restart} data-autofocus>Play again</button>
           <Link href="/" className="btn flex-1">Library</Link>
         </div>
       </Sheet>

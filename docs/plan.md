@@ -32,7 +32,7 @@ All names, art and levels are original. Games inspired by famous titles copy the
 | 4 ⭐ | **Flutter** | One-tap flyer (Flappy-like) | 2D | Fixed-timestep physics, seeded gaps |
 | 5 ⭐ | **Puck** | Air hockey against AI | 3D | Circle physics with restitution, 3 AI levels |
 | 6 ⭐ | **Turnstile** | Rotate-the-world puzzle (Mekorama-like) | 3D | Voxel levels, A* pathing for the robot, 20 handmade levels |
-| 7 ⭐ | **Gambit** | Chess against AI | 2D/3D board | Full rules (castling, en passant, promotion, draws), alpha-beta + iterative deepening running in a Web Worker so the UI never stalls, 4 difficulty levels, perft-tested against known node counts |
+| 7 ⭐ | ~~**Gambit**~~ → **Jigsaw** (session 11) | Chess against AI (removed; replaced by generated-superhero jigsaws, see `docs/games.md`) | 2D/3D board | Full rules (castling, en passant, promotion, draws), alpha-beta + iterative deepening running in a Web Worker so the UI never stalls, 4 difficulty levels, perft-tested against known node counts |
 | 8 ⭐ | **Stack Fall** | Falling blocks (Tetris-like) | 2D | SRS rotation + wall kicks, 7-bag, hold, ghost piece |
 | 9 ⭐ | **Brickline** | Breakout | 2D | Swept-circle collision, power-ups, level data |
 | 10 ⭐ | **Twenty48** | 2048 merge | 2D | Pure state reducer, undo |

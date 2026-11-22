@@ -49,6 +49,7 @@ export interface BrickState {
   lives: number;
   score: number;
   level: number; // 0-based
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   alive: boolean;
 }
 export type Event = "brick" | "break" | "paddle" | "wall" | "power" | "lost" | "level" | "dead";
@@ -63,7 +64,8 @@ export const LEVELS = [
 ];
 
 export const brickRect = (b: Brick) => ({ x: (b.c * W) / COLS, y: TOP + b.r * (BRICK_H + 1), w: W / COLS, h: BRICK_H });
-export const paddleW = (s: BrickState) => (s.wide > 0 ? WIDE_W : BASE_W);
+const PAD = [4, 0, -4]; // paddle width by difficulty
+export const paddleW = (s: BrickState) => (s.wide > 0 ? WIDE_W : BASE_W) + PAD[s.d ?? 1];
 
 export function levelBricks(level: number, rng: Rng): Brick[] {
   const rows = LEVELS[level];
@@ -83,10 +85,10 @@ export function levelBricks(level: number, rng: Rng): Brick[] {
   return out.length ? out : [{ c: 4, r: 0, hp: 1 }];
 }
 
-export function newGame(rng: Rng, level = 0): BrickState {
+export function newGame(rng: Rng, level = 0, d = 1): BrickState {
   return {
     paddle: W / 2, balls: [{ x: W / 2, y: PADDLE_Y - BALL_R, vx: 0, vy: 0 }], stuck: true, speed: BASE_SPEED + level * 2,
-    bricks: levelBricks(level, rng), drops: [], wide: 0, slow: 0, lives: 3, score: 0, level, alive: true,
+    bricks: levelBricks(level, rng), drops: [], wide: 0, slow: 0, lives: 3, score: 0, level, alive: true, d,
   };
 }
 

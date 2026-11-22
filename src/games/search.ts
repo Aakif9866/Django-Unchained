@@ -1,5 +1,5 @@
 /**
- * Game-tree search shared by the board games (Gambit, Reversi, Four Up): negamax with alpha-beta pruning,
+ * Game-tree search shared by the board games (Reversi, Four Up): negamax with alpha-beta pruning,
  * iterative deepening, an optional quiescence pass, and root "noise" so the lower levels play like people.
  * Pure: moves are numbers, and the clock and randomness are injected, so tests are deterministic.
  */
@@ -8,7 +8,7 @@ export const WIN = 1_000_000;
 export interface Position {
   /** Legal moves for the side to move, most promising first. Only called when over() is null. */
   moves(): number[];
-  /** Captures to keep resolving past the horizon (quiescence). Chess only. */
+  /** Captures to keep resolving past the horizon (quiescence). Optional: no current game needs it. */
   noisy?(): number[];
   make(m: number): void;
   undo(): void;

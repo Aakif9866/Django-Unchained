@@ -8,9 +8,9 @@ const Z = (y: number) => (y - H / 2) * S;
 
 const puck: GameModule = {
   kind: "3d",
-  create({ stage, input, rng, emit, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, reducedMotion }) {
     const { scene, renderer, key } = stage;
-    let s: PuckState = newGame();
+    let s: PuckState = newGame(difficulty);
     stage.host.style.background = "radial-gradient(120% 80% at 50% 30%, #3b2a7a 0%, #140f2e 60%, #07060f 100%)";
     const tw = W * S;
     const th = H * S;

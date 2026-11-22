@@ -13,26 +13,28 @@ export interface MineState {
   mines: number[] | null; // 1 = mine; null until the first dig
   marks: number[]; // CLOSED | OPEN | FLAG per cell
   level: number;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   score: number;
   alive: boolean;
   boom: number; // the mine that went off, or -1
   cleared: boolean; // every safe cell open: waiting for the next board
 }
 
-export function sizeFor(level: number) {
+export const DENSITY = [0.75, 1, 1.3];
+export function sizeFor(level: number, d = 1) {
   const cols = 8;
   const rows = Math.min(14, 9 + level);
-  const count = Math.round(cols * rows * Math.min(0.2, 0.11 + 0.015 * level));
+  const count = Math.round(cols * rows * Math.min(0.2, 0.11 + 0.015 * level) * DENSITY[d]);
   return { cols, rows, count };
 }
 
-function board(level: number, score: number): MineState {
-  const { cols, rows, count } = sizeFor(level);
-  return { cols, rows, count, mines: null, marks: Array(cols * rows).fill(CLOSED), level, score, alive: true, boom: -1, cleared: false };
+function board(level: number, score: number, d = 1): MineState {
+  const { cols, rows, count } = sizeFor(level, d);
+  return { cols, rows, count, mines: null, marks: Array(cols * rows).fill(CLOSED), level, score, alive: true, boom: -1, cleared: false, d };
 }
-export const newGame = () => board(1, 0);
+export const newGame = (d = 1) => board(1, 0, d);
 /** After clearing a board: the next, bigger one. */
-export const nextBoard = (s: MineState) => Object.assign(s, board(s.level + 1, s.score));
+export const nextBoard = (s: MineState) => Object.assign(s, board(s.level + 1, s.score, s.d ?? 1));
 
 export function neighbours(s: Pick<MineState, "cols" | "rows">, cell: number): number[] {
   const r = Math.floor(cell / s.cols), c = cell % s.cols, out: number[] = [];

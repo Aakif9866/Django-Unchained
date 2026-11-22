@@ -12,11 +12,14 @@ export function Sheet({
   open,
   onDismiss,
   label,
+  center = false,
   children,
 }: {
   open: boolean;
   onDismiss?: () => void;
   label: string;
+  /** A centred card that materialises in place (results), instead of a sheet from the bottom. */
+  center?: boolean;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -25,7 +28,7 @@ export function Sheet({
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     // Focus the first action so keyboard users can act immediately.
-    const t = setTimeout(() => ref.current?.querySelector<HTMLElement>("button, a")?.focus(), 50);
+    const t = setTimeout(() => (ref.current?.querySelector<HTMLElement>("[data-autofocus]") ?? ref.current?.querySelector<HTMLElement>("button, a"))?.focus(), 50);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && onDismiss) {
         e.stopPropagation();
@@ -58,6 +61,23 @@ export function Sheet({
             transition={{ duration: 0.25 }}
             onClick={onDismiss}
           />
+          {center ? (
+            <div key="center" className="dialog-wrap">
+              <motion.div
+                ref={ref}
+                role="dialog"
+                aria-modal="true"
+                aria-label={label}
+                className="dialog material-heavy"
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96, pointerEvents: "none" }}
+                transition={{ type: "spring", bounce: 0, visualDuration: 0.32 }}
+              >
+                {children}
+              </motion.div>
+            </div>
+          ) : (
           <motion.div
             key="sheet"
             ref={ref}
@@ -77,6 +97,7 @@ export function Sheet({
             <div className="grabber" aria-hidden />
             {children}
           </motion.div>
+          )}
         </>
       )}
     </AnimatePresence>

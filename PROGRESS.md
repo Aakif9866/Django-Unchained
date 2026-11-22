@@ -241,6 +241,105 @@ game the ladder.
 **Simplified on purpose:** no undo in Solitaire; draw one only (no draw three); the Word Hunt dictionary accepts
 obscure Webster words and naive plurals.
 
+## Session 9 (2026-11-21): runner fix, Portfolio restyle, mobile sweep
+
+- **Bug fixed: left and right were swapped in Rail Dash and Ridge Run.** The chase camera looks down +z, where world
+  +x is screen-left, so lane +1 ("right") was drawn on the left. `runner-view.ts` now mirrors lane offsets (and the
+  lean), as Hop already did; the rules are unchanged. Checked by screenshot after pressing →. Drift, Labyrinth,
+  Pocket Golf and Puck were checked too and were already correct.
+- **New UI: the Portfolio theme** (frontend-design-aesthetic skill).
+  - True-black stepped surfaces, inset hairlines and film grain; Geist, Geist Mono and Instrument Serif italic via
+    `next/font`.
+  - The hero has a spotlight, a masked grid, one drifting aurora, and "in-between" as the single serif-italic
+    gradient phrase. Also: a glass header with the brand mark, a stat strip, numbered mono eyebrows.
+  - Neutral game cards: each game's gradient now appears only as its icon tile and a small "area tick".
+  - Six colour grades (Aurora default, Apple Blue, Emerald, Solar, Ocean, Titanium) as `data-palette` token blocks,
+    picked in Settings (a radio group of swatches), persisted in the store, and applied before first paint by an
+    inline script.
+  - The old token names (`--text`, `--surface-1`…) are aliases, so the game frame and games follow the theme.
+  - Reduced motion turns off the aurora, shimmer and entrances; reduced transparency and high contrast make glass
+    solid.
+- **Mobile sweep:** all 32 games screenshotted at 320 × 568 on one contact sheet. Nothing was clipped; one fix:
+  Stack Fall's hold / stats / next panels now scale with the well (they overlapped on narrow phones). The clock pill
+  fits its content on phones.
+- README: live link at the top; refreshed (it still said 2 games).
+- Results: `npm test` 277/277, `npm run e2e` 81/81 on the static build.
+- Gotcha again: after `globals.css` changes, the dev server served a stale CSS chunk until `rm -rf .next` and a
+  restart.
+- The live site still runs the previous build: **redeploy to ship these fixes** (steps below).
+
+## Session 10 (2026-11-21): chess polish, real caching, results dialog
+
+- **Chess:** standard algebraic notation (`san()` in logic, with disambiguation, promotion, en passant, +/#; tests
+  added) and a move list under the board (newest pair in the accent). The engine strip says "thinking" or "played Nf3",
+  and a red CHECK pill appears on the side in check. The board is ivory stone and slate; selection, last move, drag
+  hover and cursor all use the app's colour grade (read from `--accent`), and the rim is an accent hairline.
+  Snapshot version bumped to 2 (moves are saved).
+- **Caching / speed:**
+  - The service worker now precaches the whole site. `scripts/precache.mjs` (postbuild) stamps `out/sw.js` with a
+    content hash and every file (245, pages by clean URL, words.txt included). Install downloads them in the
+    background, 6 at a time.
+  - Hashed `/_next/static` files are cache-first; everything else is stale-while-revalidate. A new build means a new
+    cache, and old ones are deleted on activation.
+  - Gotcha fixed: a cached response carries the cached URL. Turbopack's worker bootstrap reads its config from the
+    query string, so hits are re-wrapped without a URL.
+  - New smoke test: after one visit, offline, a game never opened (Reversi) loads and its engine worker replies, and
+    Word Hunt loads its dictionary.
+  - Cards start downloading their game's code on hover or press.
+  - Inside games the HUD drops its live backdrop blur (it was recomputed every frame over the canvas), and the film
+    grain is off.
+  - `deploy/vercel.json` sets cache headers: immutable for `_next/static`, no-cache for `sw.js`, a day plus
+    stale-while-revalidate for `words.txt`.
+- **Game over** is now a centred card: the game icon and name, score (marked on a new best), best, how far off it (or
+  the previous best), runs played, and average.
+- **Removed:** the "On hold" session timer, the "left N min ago" line, and the timestamps saved for it (snapshot `at`,
+  run `at`).
+- Results: `npm test` 279/279, `npm run e2e` 82/82 on the static build.
+
+## Session 11 (2026-11-22): Jigsaw replaces chess, Easy / Medium / Hard, game docs
+
+- **Removed Gambit (chess)**: the user felt it wasn't good enough. Its session-10 polish was never committed and
+  went with it.
+- **New: Jigsaw** (Puzzle, 2D) in the same slot, so there are still 32 games.
+  - Original superheroes are drawn in code at 1920 × 1080 from a seed (1–9999): sky theme, sun or moon, rays, two
+    skylines with lit windows, a rooftop, and a hero built from parts (stand or fly pose, build, cape, mask or
+    helmet, one of 12 chest emblems, three-colour costume) plus a generated name. No API and no copyright risk.
+  - Rules: seeded tab or blank per inside edge (neighbours always fit); snap within 0.3 cell; 10 per piece plus a time
+    bonus. Pieces are cut once with bezier knobs and cached per size. Space places a piece for free.
+- **Easy / Medium / Hard** for 27 games (not Crates, Turnstile, Pipe Flow, Lights Out or Pocket Golf).
+  - A segmented picker on the start sheet and the game-over card, remembered per game (`levels` in the store). The
+    difficulty is saved in the snapshot wrapper; old saves resume as Medium.
+  - Real-time games run at 0.8× / 1× / 1.3× (`SPEED`, `realtime` flag in the registry).
+  - One rule each where it matters: Stack Fall start level 1 / 4 / 8, Flutter gaps, Fruit Slice bombs, Brickline
+    paddle, Puck and Rally AI, Minefield density, Nine clues, Nonogram mistakes 5 / 3 / 1, Tiles shuffles 3 / 2 / 1,
+    Word Hunt 150 / 120 / 90 s, Pairs time, Twenty48 4-rate and no undo on Hard, Solitaire passes ∞ / 3 / 2
+    (deals still proven with the same rule, worst ~140 ms), Reversi and Four Up start at engine level 1 / 2 / 3.
+  - Medium keeps the original tuning, except Stack Fall (starts at 4) and the board games (start at level 2).
+  - Sheets now focus the main button (`data-autofocus`), not the first picker button.
+- **Docs:** `docs/games.md` covers how each game plays, the core logic, the browser APIs used (no external API), and the
+  shared engine pieces. It's linked from the README.
+- Results: `npm test` 280/280 (Jigsaw 10, difficulty 13), smoke 49/49 on the static build (new: difficulty pick
+  remembered plus Jigsaw solves to game over; level puzzles show no picker). tsc and eslint clean. Screenshots of
+  Jigsaw (phone, desktop, four solved heroes) and the picker were looked at.
+- Known, already there before: the board behind the "ready" sheet is blank until Play (the live site does the same).
+- **Simplified on purpose:** bests are shared across difficulties (split them if players ask). Speed-only games
+  (Coil, Glide, runners, Orbit, Hop, Drift, Helix Drop, Bubble, Labyrinth) change only their speed.
+
+## Deployment (2026-11-20)
+
+- **Live:** https://on-hold-theta.vercel.app (Vercel project `on-hold`, account aakif9866). The 48 smoke tests pass
+  against it in Chrome (all 32 games pause/resume, Worker engines, offline, gamepad, 404).
+- How it was deployed: a CLI upload of the static export only, never the repo root (the root holds the untracked
+  SIDEQUEST leftovers, including `.env`). To redeploy:
+  1. `rm -rf .next out && npm run build` (postbuild stamps the service worker automatically).
+  2. Copy `out/` into an empty folder named `on-hold`, delete `_next/static/media/ai.worker.*.ts`, and copy
+     `deploy/vercel.json` in (clean URLs plus cache headers).
+  3. In that folder: `npx vercel deploy --prod --yes`.
+- Better long-term: connect the GitHub repo in the Vercel dashboard (branch `new-project`, framework Next.js) for
+  automatic deploys on push. Git-based builds are safe, because the leftovers are gitignored. The `cleanUrls` setting
+  would then go in a `vercel.json` at the repo root.
+- Not set up yet: a custom domain, analytics.
+
 ## Next up (start here on "continue")
 
 1. Phase 7, polish: Lighthouse (PWA, performance, accessibility), a performance pass on a mid-range phone (60 fps,

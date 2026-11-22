@@ -13,6 +13,10 @@ export interface GameMeta {
   controls: string;
   /** Snapshot format version. Bump it when serialize() changes shape. */
   version: number;
+  /** Offers Easy / Medium / Hard. False for games that already go level by level. */
+  levels: boolean;
+  /** Real-time game: Easy / Hard also slow down / speed up the clock it runs on. */
+  realtime: boolean;
   load?: () => Promise<{ default: GameModule }>;
 }
 
@@ -25,7 +29,14 @@ const g = (
   gradient: [string, string, string],
   controls = "",
   load?: GameMeta["load"],
-): GameMeta => ({ id, name, tagline, category, render, gradient, controls, version: 1, load });
+): GameMeta => ({ id, name, tagline, category, render, gradient, controls, version: 1, levels: true, realtime: false, load });
+
+/** Difficulty only changes the rules, the board's speed is its own (turn-based or level games). */
+const LEVEL_GAMES = new Set(["crates", "turnstile", "pipe-flow", "lights-out", "pocket-golf"]);
+/** Easy / Hard also scale time for these: 0.8× / 1.3×. */
+const REALTIME = new Set(["coil", "glide", "ridge-run", "rail-dash", "flutter", "puck", "brickline", "labyrinth", "orbit", "hop",
+  "bubble", "rally", "drift", "fruit-slice", "helix-drop"]);
+export const SPEED = [0.8, 1, 1.3];
 
 export const GAMES: GameMeta[] = [
   g("coil", "Coil", "The classic snake, tuned smooth.", "Arcade", "2d", ["#34e89e", "#0fb8ad", "#1f6feb"],
@@ -42,8 +53,8 @@ export const GAMES: GameMeta[] = [
     "Drag your mallet anywhere on your half · Arrow keys", () => import("./puck")),
   g("turnstile", "Turnstile", "Rotate the world, guide the bot home.", "Puzzle", "3d", ["#c471f5", "#fa71cd", "#f7797d"],
     "Tap a turnstile: every one of its colour turns · Open a path home · Drag to orbit · ← → pick a colour, Space turns", () => import("./turnstile")),
-  g("gambit", "Gambit", "Chess against an engine that thinks.", "Board", "2d", ["#bdc3c7", "#8e9eab", "#2c3e50"],
-    "Tap a piece, then a square · Or drag it · Win to face a stronger engine · Arrow keys + Space, C resigns", () => import("./gambit")),
+  g("jigsaw", "Jigsaw", "Piece together a hero.", "Puzzle", "2d", ["#ff512f", "#f09819", "#5b247a"],
+    "Drag pieces onto the board: close enough and they snap · Thousands of original heroes · Space places one piece", () => import("./jigsaw")),
   g("stack-fall", "Stack Fall", "Falling blocks, clean lines.", "Arcade", "2d", ["#fc466b", "#3f5efb", "#00d2ff"],
     "Drag to move · Tap to rotate · Flick down to drop, up to hold · ← → ↑ ↓ Space C", () => import("./stack-fall")),
   g("brickline", "Brickline", "Break every brick, catch the power-ups.", "Arcade", "2d", ["#f12711", "#f5af19", "#ffe259"],
@@ -92,7 +103,7 @@ export const GAMES: GameMeta[] = [
     "Tap or drag along a line to fill · Switch to Cross to mark blanks · Three mistakes end the run · Arrows, Space, C", () => import("./nonogram")),
   g("tiles", "Tiles", "Match free tiles, clear the stack.", "Cards", "2d", ["#d4af37", "#f3e7c3", "#8a6e2f"],
     "Tap two free tiles with the same face · Free = nothing on top, open on one side · Two shuffles per run · Arrows, Space, C shuffles", () => import("./tiles")),
-];
+].map((m) => ({ ...m, levels: !LEVEL_GAMES.has(m.id), realtime: REALTIME.has(m.id) }));
 
 export const CATEGORIES: Category[] = ["Arcade", "Action", "Puzzle", "Board", "Cards"];
 

@@ -9,9 +9,9 @@ const GRAVITY = 70; // cells / s²
 
 const fourUp: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: FourState = newGame();
+    let s: FourState = newGame([1, 2, 3][difficulty]);
     const ai = createThinker<{ grid: number[]; turn: Color; level: number; seed: number }>(
       () => new Worker(new URL("./ai.worker.ts", import.meta.url)),
       (q) => think(q.grid, q.turn, q.level, createRng(q.seed), () => performance.now()).move,

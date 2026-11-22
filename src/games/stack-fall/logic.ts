@@ -29,6 +29,7 @@ export interface StackState {
   score: number;
   lines: number;
   level: number;
+  start?: number; // starting level, by difficulty (missing = 1)
   grav: number; // seconds accumulated toward the next gravity step
   lock: number; // seconds resting on the stack
   resets: number;
@@ -110,10 +111,10 @@ function enter(s: StackState, k: Kind) {
   if (!fits(s.board, s.cur)) s.alive = false; // block out
 }
 
-export function newGame(rng: Rng): StackState {
+export function newGame(rng: Rng, start = 1): StackState {
   const s: StackState = {
     board: Array(ROWS * COLS).fill(0), cur: spawnPiece("T"), bag: [], hold: null, canHold: true,
-    score: 0, lines: 0, level: 1, grav: 0, lock: 0, resets: 0, alive: true,
+    score: 0, lines: 0, level: start, start, grav: 0, lock: 0, resets: 0, alive: true,
   };
   refill(s, rng);
   enter(s, s.bag.shift()!);
@@ -190,7 +191,7 @@ function lockPiece(s: StackState, rng: Rng): Clear {
   const points = LINE_POINTS[rows.length] * s.level;
   s.score += points;
   s.lines += rows.length;
-  s.level = 1 + Math.floor(s.lines / 10);
+  s.level = (s.start ?? 1) + Math.floor(s.lines / 10);
   s.canHold = true;
   enter(s, s.bag.shift()!);
   refill(s, rng);

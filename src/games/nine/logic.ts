@@ -14,6 +14,7 @@ export interface NineState {
   grade: "Gentle" | "Tricky";
   mistakes: number;
   level: number;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   score: number;
   alive: boolean;
   solved: boolean;
@@ -95,9 +96,10 @@ export function singlesSolve(grid: number[]): boolean {
   return g.every(Boolean);
 }
 
-const cluesFor = (level: number) => Math.max(26, 42 - level * 2);
+const CLUE_SHIFT = [6, 0, -6];
+const cluesFor = (level: number, d = 1) => Math.max(d === 2 ? 24 : 26, 42 + CLUE_SHIFT[d] - level * 2);
 
-function puzzle(level: number, score: number, rng: Rng): NineState {
+function puzzle(level: number, score: number, rng: Rng, d = 1): NineState {
   const shuffle = <T,>(a: T[]) => {
     for (let i = a.length - 1; i > 0; i--) {
       const j = rng.int(0, i);
@@ -109,7 +111,7 @@ function puzzle(level: number, score: number, rng: Rng): NineState {
   const givens = solution.slice();
   let clues = 81;
   for (const i of shuffle(Array.from({ length: 81 }, (_, k) => k))) {
-    if (clues <= cluesFor(level)) break;
+    if (clues <= cluesFor(level, d)) break;
     const v = givens[i];
     givens[i] = 0;
     if (countSolutions(givens, 2).count === 1) clues--;
@@ -117,12 +119,12 @@ function puzzle(level: number, score: number, rng: Rng): NineState {
   }
   return {
     givens, grid: givens.slice(), solution, notes: Array(81).fill(0), grade: singlesSolve(givens) ? "Gentle" : "Tricky",
-    mistakes: 0, level, score, alive: true, solved: false,
+    mistakes: 0, level, score, alive: true, solved: false, d,
   };
 }
 
-export const newGame = (rng: Rng) => puzzle(1, 0, rng);
-export const nextPuzzle = (s: NineState, rng: Rng) => Object.assign(s, puzzle(s.level + 1, s.score, rng));
+export const newGame = (rng: Rng, d = 1) => puzzle(1, 0, rng, d);
+export const nextPuzzle = (s: NineState, rng: Rng) => Object.assign(s, puzzle(s.level + 1, s.score, rng, s.d ?? 1));
 
 export type Placed = "right" | "wrong" | "solved" | null;
 

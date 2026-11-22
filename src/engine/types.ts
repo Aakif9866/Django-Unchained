@@ -16,7 +16,10 @@ export interface GameEnv<S> {
   /** Space covered by the HUD / home indicator, in CSS px. Games keep play inside it. */
   insets(): { top: number; bottom: number };
   reducedMotion: boolean;
+  /** 0 Easy, 1 Medium, 2 Hard. Games without levels always get 1. */
+  difficulty: Difficulty;
 }
+export type Difficulty = 0 | 1 | 2;
 
 /** The one contract every game implements. */
 export interface GameInstance {

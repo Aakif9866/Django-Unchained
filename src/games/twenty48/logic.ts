@@ -19,6 +19,7 @@ interface Snap {
 export interface T48State extends Omit<Snap, "rng"> {
   over: boolean;
   undo: Snap | null;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
 }
 export interface Moved {
   slides: { from: number; to: number }[];
@@ -38,11 +39,12 @@ const LINES: Record<Dir, number[][]> = {
   down: range.map((c) => range.map((r) => idx(SIZE - 1 - r, c))),
 };
 
-function spawn(board: number[], rng: Rng): number {
+const P4 = [0.05, 0.1, 0.25]; // chance a new tile is a 4
+function spawn(board: number[], rng: Rng, p4 = 0.1): number {
   const empty = board.flatMap((v, i) => (v ? [] : [i]));
   if (!empty.length) return -1;
   const at = rng.pick(empty);
-  board[at] = rng.next() < 0.9 ? 2 : 4;
+  board[at] = rng.next() < 1 - p4 ? 2 : 4;
   return at;
 }
 
@@ -55,11 +57,11 @@ export function canMove(board: number[]): boolean {
   return false;
 }
 
-export function newGame(rng: Rng): T48State {
+export function newGame(rng: Rng, d = 1): T48State {
   const board = Array(SIZE * SIZE).fill(0);
-  spawn(board, rng);
-  spawn(board, rng);
-  return { board, score: 0, moves: 0, won: false, over: false, undo: null };
+  spawn(board, rng, P4[d]);
+  spawn(board, rng, P4[d]);
+  return { board, score: 0, moves: 0, won: false, over: false, undo: null, d };
 }
 
 /** Slide toward `dir`. Returns what happened (for animation), or null if nothing could move. */
@@ -95,7 +97,7 @@ export function move(s: T48State, dir: Dir, rng: Rng): Moved | null {
   s.moves++;
   const reachedGoal = !s.won && next.some((v) => v >= GOAL);
   if (reachedGoal) s.won = true; // you can keep going past it
-  const at = spawn(next, rng);
+  const at = spawn(next, rng, P4[s.d ?? 1]);
   s.over = !canMove(next);
   return { slides, merges, spawn: at, gained, reachedGoal };
 }
@@ -103,7 +105,7 @@ export function move(s: T48State, dir: Dir, rng: Rng): Moved | null {
 /** Step back one move (once). Rewinds the generator, so replaying the same move spawns the same tile. */
 export function undo(s: T48State, rng: Rng): boolean {
   const u = s.undo;
-  if (!u || s.over) return false;
+  if (!u || s.over || s.d === 2) return false; // Hard: no undo
   Object.assign(s, { board: u.board, score: u.score, moves: u.moves, won: u.won, undo: null });
   rng.setState(u.rng);
   return true;

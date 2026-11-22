@@ -39,9 +39,9 @@ function symbol(ctx: CanvasRenderingContext2D, id: number, cx: number, cy: numbe
 
 const pairs: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: PairsState = newGame(rng);
+    let s: PairsState = newGame(rng, difficulty);
     const turning = new Map<number, number>(); // card → seconds into its flip
     let missT = 0;
     let pressed = -1;
@@ -164,7 +164,7 @@ const pairs: GameModule = {
         ctx.fillRect(0, 0, W, H);
 
         pill(ctx, L.x, L.infoY, L.bw, 40, null);
-        const full = sizeFor(s.level).time;
+        const full = sizeFor(s.level, s.d ?? 1).time;
         const f = s.time / full;
         ctx.fillStyle = f < 0.2 ? "rgba(255,92,122,0.55)" : "rgba(238,156,167,0.35)";
         ctx.beginPath();

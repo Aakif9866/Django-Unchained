@@ -7,9 +7,9 @@ const ACCENT = "#4facfe";
 
 const nine: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: NineState = newGame(rng);
+    let s: NineState = newGame(rng, difficulty);
     let sel = 40;
     let notes = false;
     let wrong: { cell: number; d: number; t: number } | null = null;

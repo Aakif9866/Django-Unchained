@@ -23,9 +23,9 @@ const BEYOND: [string, string, string] = ["#22d3ee", "#6366f1", "#ffffff"];
 
 const twenty48: GameModule = {
   kind: "2d",
-  create({ stage, input, rng, emit, insets, reducedMotion }) {
+  create({ difficulty, stage, input, rng, emit, insets, reducedMotion }) {
     const { ctx } = stage;
-    let s: T48State = newGame(rng);
+    let s: T48State = newGame(rng, difficulty);
     let anim: (Moved & { prev: number[]; t: number }) | null = null;
     let armed = false; // one move per swipe gesture
     let press: "undo" | null = null;
@@ -214,7 +214,7 @@ const twenty48: GameModule = {
 
         // Undo, under your thumb.
         const u = L.undo;
-        const can = !!s.undo && !s.over;
+        const can = !!s.undo && !s.over && s.d !== 2;
         ctx.fillStyle = press === "undo" && can ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)";
         ctx.strokeStyle = "rgba(255,255,255,0.1)";
         ctx.beginPath();

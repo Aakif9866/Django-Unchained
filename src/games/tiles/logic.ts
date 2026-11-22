@@ -66,7 +66,7 @@ function board(level: number, score: number, shuffles: number, rng: Rng): TilesS
   while (!deal(tiles, rng));
   return { tiles, level, score, shuffles, alive: true, cleared: false };
 }
-export const newGame = (rng: Rng) => board(1, 0, 2, rng);
+export const newGame = (rng: Rng, d = 1) => board(1, 0, [3, 2, 1][d], rng);
 export const nextBoard = (s: TilesState, rng: Rng) => Object.assign(s, board(s.level + 1, s.score, s.shuffles, rng));
 
 export function hasMove(s: TilesState): boolean {

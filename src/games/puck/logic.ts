@@ -30,18 +30,21 @@ export interface PuckState {
   target: { x: number; y: number };
   pts: { you: number; cpu: number };
   level: number;
+  d?: number; // difficulty 0 Easy, 1 Medium, 2 Hard (missing = Medium)
   pause: number; // after a goal
   score: number;
   alive: boolean;
 }
 export type Event = "hit" | "wall" | "goal-you" | "goal-cpu" | "match" | "dead";
 
+/** Easy plays the AI a level softer, Hard 1.5 levels sharper. */
+export const aiFor = (s: { level: number; d?: number }) => ai(s.level + [-1, 0, 1.5][s.d ?? 1]);
 export const ai = (level: number) => ({ speed: 70 + level * 22, aimError: Math.max(2, 10 - level * 2.5), reach: 0.35 + level * 0.05 });
 
-export function newGame(): PuckState {
+export function newGame(d = 1): PuckState {
   return {
     puck: { x: W / 2, y: H / 2 + 12, vx: 0, vy: 0 }, you: { x: W / 2, y: H - 12, vx: 0, vy: 0 }, cpu: { x: W / 2, y: 12, vx: 0, vy: 0 },
-    target: { x: W / 2, y: H - 12 }, pts: { you: 0, cpu: 0 }, level: 0, pause: 0.6, score: 0, alive: true,
+    target: { x: W / 2, y: H - 12 }, pts: { you: 0, cpu: 0 }, level: 0, pause: 0.6, score: 0, alive: true, d,
   };
 }
 
@@ -97,7 +100,7 @@ function collide(p: Disc, m: Disc): boolean {
 }
 
 function cpuThink(s: PuckState, rng: Rng): { x: number; y: number } {
-  const A = ai(s.level);
+  const A = aiFor(s);
   const p = s.puck;
   // Strike when the puck is in our half and not racing away: get behind it, aim at the far goal.
   if (p.y < H * A.reach + 10 && p.y < H / 2) {
@@ -117,7 +120,7 @@ export function step(s: PuckState, dt: number, rng: Rng): Event[] {
   if (s.pause > 0) {
     s.pause -= dt;
     moveMallet(s.you, s.target.x, s.target.y, MALLET_SPEED, dt, false);
-    moveMallet(s.cpu, W / 2, 12, ai(s.level).speed, dt, true);
+    moveMallet(s.cpu, W / 2, 12, aiFor(s).speed, dt, true);
     return ev;
   }
   const n = 4;
@@ -125,7 +128,7 @@ export function step(s: PuckState, dt: number, rng: Rng): Event[] {
   const t = cpuThink(s, rng);
   for (let i = 0; i < n; i++) {
     moveMallet(s.you, s.target.x, s.target.y, MALLET_SPEED, h, false);
-    moveMallet(s.cpu, t.x, t.y, ai(s.level).speed, h, true);
+    moveMallet(s.cpu, t.x, t.y, aiFor(s).speed, h, true);
     const p = s.puck;
     p.x += p.vx * h;
     p.y += p.vy * h;
