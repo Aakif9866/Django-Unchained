@@ -19,6 +19,7 @@ The rule of v1 still holds: every game must keep working offline and as a guest.
 | **Competition** | Global and friends leaderboards, daily seeded challenge (same seed for everyone), shareable result cards, ghost-race sharing for Drift |
 | **Creation** | Level editor for Turnstile and Crates, sharing levels by link |
 | **Native** | Optional Capacitor wrapper (native haptics, push notifications for invites and messages) |
+| **Hidden modes** | `/auto` (the game plays itself as well as it can) and `/cheat` (infinite lives). Unlinked; see §8 |
 
 ---
 
@@ -137,3 +138,46 @@ reports(id, reporter_id, target_kind, target_id, reason, status)
 - How much chat history to keep, and do messages need end-to-end encryption for DMs?
 - Minimum age and the moderation policy for group chat.
 - Score verification: replay inputs on the server (best, possible because the logic is deterministic) vs trust plus sanity checks.
+
+---
+
+## 8. Hidden modes: auto and cheat
+
+Two unlinked routes for curiosity and testing. **Auto** plays the real game (same random spawns, same traps) as well as a
+bot can, so you can watch where ideal play leads, for example Coil filling the entire board. **Cheat** gives infinite lives.
+Neither needs accounts or a server, so they can ship at any point in v2 (or late in v1).
+
+**Feasible as is.** The engine already has what this needs: rules are pure and deterministic in `logic.ts`, randomness
+comes in through `Rng`, and every game runs through one `GameEnv` and one runtime (`GameFrame`). The real cost is one bot per game.
+
+**Routes.** `/play/[id]/auto` and `/play/[id]/cheat` are static pages built from the same `generateStaticParams`
+(96 pages in total). Nothing links to them and they're marked `robots: { index: false }`. Each one renders
+`<GameFrame id mode="auto" | "cheat">`.
+
+**Contract change (one field).** Add `GameEnv.mode: "play" | "auto" | "cheat"`, plus an optional pure
+`bot(state, rng?) → Action | null` in each `logic.ts`, with tests. In auto mode, `index.ts` calls the bot every tick
+and applies its move through the same path as player input, and player input is disabled.
+
+**Runtime (GameFrame).** Auto shows a "Bot" badge and a speed chip (1× / 2× / 4× / 16×, which runs `update` N times per
+frame). Neither mode calls `recordRun`, and both use their own snapshot key, so bests and history stay real.
+
+**Cheat semantics.** A death becomes a revive:
+- Games with `lives` (Orbit, Fruit Slice, Labyrinth, Brickline): lives never go down.
+- One-death games (Coil, Flutter, the runners, Helix Drop, Stack Fall, …): revive in place, with a short window of invulnerability.
+- Puzzles, board games and cards have no lives, so cheat there means unlimited undo and hints, or the route isn't offered.
+
+**Bot per category (effort).**
+| Category | Approach | Effort |
+|---|---|---|
+| Board (Four Up, Reversi) | Reuse `src/games/search.ts` at max depth to play the player's side | Small |
+| Puzzles | Exact solvers. Nine: backtracking. Lights Out: GF(2) elimination. Nonogram: line solver. Crates: BFS/A*. Minefield: constraint propagation, guessing only when forced. Pipe Flow / Turnstile: search. Twenty48: expectimax. Word Hunt: trie walk. Jigsaw: place in order | Medium |
+| Cards (Solitaire, Pairs, Tiles) | Heuristic plus a small lookahead. Pairs remembers every card it has seen | Medium |
+| Arcade 2D | Coil: a Hamiltonian cycle with safe shortcuts, guaranteed to fill the board. Rally / Brickline: track the predicted ball. Flutter: aim for the centre of the gap. Stack Fall: a classic placement heuristic. Bubble / Orbit / Fruit Slice: greedy target picking | Medium |
+| Action 3D (runners, Hop, Drift, Glide, Helix Drop, Puck, Pocket Golf, Labyrinth) | Lookahead over upcoming obstacles, or a physics shot search for golf. Some bots will be "very good", not perfect | Large |
+
+**Found while checking.** A full Coil board currently ends as `"dead"`: in `src/games/coil/logic.ts`, `spawn()` returns
+null and the game counts it as a death. Auto mode would expose this, so add a real **win** state and a "Board cleared"
+result. Endless games simply run until the bot slips, or until a time or score cap.
+
+**Rollout.** Pilot with Coil, Four Up and Nine (one bot per kind), then roll out category by category. The bots double as
+soak tests in CI, and they fit the §7 idea of replaying inputs on the server.

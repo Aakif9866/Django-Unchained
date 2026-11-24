@@ -340,6 +340,12 @@ obscure Webster words and naive plurals.
   would then go in a `vercel.json` at the repo root.
 - Not set up yet: a custom domain, analytics.
 
+## Session 11 (2026-11-24): hidden modes spec
+
+- Spec only, no code: hidden `/play/[id]/auto` (a bot plays the game) and `/play/[id]/cheat` (infinite lives) routes,
+  added to `docs/v2-plan.md` §8. Feasible with one `GameEnv.mode` field plus a bot per game.
+- Found while checking: a full Coil board ends as "dead" instead of a win (fix it when auto mode is built).
+
 ## Next up (start here on "continue")
 
 1. Phase 7, polish: Lighthouse (PWA, performance, accessibility), a performance pass on a mid-range phone (60 fps,
