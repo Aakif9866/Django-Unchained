@@ -111,7 +111,7 @@ src/
 ## v2 backlog (not built now)
 Full v2 plan (accounts, guests, profiles, chat, real time, Redis, DevOps): `docs/v2-plan.md`.
 
-Accounts and a database for synced saves, global leaderboards, daily seeded challenges and shareable result cards, real-time multiplayer (chess, air hockey, Pong), ghost-race sharing, a level editor for Turnstile and Sokoban, an optional Capacitor wrapper for native haptics, and hidden `/auto` (self-playing bot) and `/cheat` (infinite lives) routes (spec: `docs/v2-plan.md` §8).
+Accounts and a database for synced saves, global leaderboards, daily seeded challenges and shareable result cards, real-time multiplayer (chess, air hockey, Pong), ghost-race sharing, a level editor for Turnstile and Sokoban, an optional Capacitor wrapper for native haptics, rooms (create a server, set max players, everyone plays on one shared screen with phones as controllers; spec: `docs/v2-plan.md` §9), and hidden `/auto` (self-playing bot) and `/cheat` (infinite lives) routes (spec: `docs/v2-plan.md` §8).
 
 ## Verification
 - `npm run test` (Vitest) runs unit tests for every `logic.ts`: chess perft node counts, Stack Fall SRS rotations and kicks, Sudoku solution uniqueness, Minesweeper's safe first click, maze connectivity, the 2048 reducer, snapshot round-trips (serialize → restore → same state).

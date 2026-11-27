@@ -19,6 +19,7 @@ The rule of v1 still holds: every game must keep working offline and as a guest.
 | **Competition** | Global and friends leaderboards, daily seeded challenge (same seed for everyone), shareable result cards, ghost-race sharing for Drift |
 | **Creation** | Level editor for Turnstile and Crates, sharing levels by link |
 | **Native** | Optional Capacitor wrapper (native haptics, push notifications for invites and messages) |
+| **Rooms** | Create a game server (room) with a join code / QR, set max players, everyone plays together on one shared screen (TV, laptop or tablet) with phones as controllers. See §9 |
 | **Hidden modes** | `/auto` (the game plays itself as well as it can) and `/cheat` (infinite lives). Unlinked; see §8 |
 
 ---
@@ -94,6 +95,8 @@ reactions(message_id, user_id, emoji)
 scores(id, user_id, game_id, score, seed, duration_ms, created_at)   -- verified where possible
 saves(user_id, game_id, version, snapshot jsonb, updated_at)          -- synced call-mode snapshots
 matches(id, game_id, players jsonb, state jsonb, result, started_at, ended_at)
+rooms(id, code unique, host_id, game_id, max_players, visibility: private|friends|public, status: lobby|playing|closed, settings jsonb, created_at, closed_at)
+room_members(room_id, user_id, role: host|player|spectator, seat, joined_at, left_at)
 daily_challenges(date, game_id, seed)
 reports(id, reporter_id, target_kind, target_id, reason, status)
 ```
@@ -126,6 +129,7 @@ reports(id, reporter_id, target_kind, target_id, reason, status)
 3. **Friends + presence:** friend codes, Redis presence, "on a call" status (call mode already knows).
 4. **Chat:** DMs, then group chats, then in-game room chat; moderation and rate limits ship with group chat.
 5. **Real-time multiplayer:** turn-based first (Four Up, Reversi, Gambit), then fast games (Rally, Puck) with prediction.
+5b. **Rooms and shared screen:** room create / join, lobby with max players, controller page, then N-player modes game by game (see §9).
 6. **Competition:** leaderboards (Redis sorted sets), daily seeded challenge, share cards, Drift ghost sharing.
 7. **Creation + native:** level editor and sharing, Capacitor app with push.
 
@@ -181,3 +185,50 @@ result. Endless games simply run until the bot slips, or until a time or score c
 
 **Rollout.** Pilot with Coil, Four Up and Nine (one bot per kind), then roll out category by category. The bots double as
 soak tests in CI, and they fit the §7 idea of replaying inputs on the server.
+
+---
+
+## 9. Rooms: host a server, max players, one shared screen
+
+Anyone can create a room (a lightweight "server") for one game, set how many people can join, and play together on a
+single common screen, like a party game. It extends the real-time multiplayer in §1 and §6 rather than replacing it.
+
+**Flow**
+1. **Create:** the host picks a game and sets **max players** (2 up to the game's own cap, at most 8), visibility
+   (private code only, friends, public), and whether guests may join. The server returns a short code (e.g. `KQ7M`)
+   and a QR code.
+2. **Lobby:** players join at `/join/KQ7M` or by scanning the QR. Each player gets a seat, a colour and a name, and
+   joins are refused once the room is full. Late joiners become spectators. The host can kick, lock the room, change the
+   game, and start the match.
+3. **Play on one screen:** the host device (TV browser, laptop or tablet) is the **shared screen** and renders the
+   whole match full screen. Every phone becomes a **controller page** that shows only that player's one-thumb controls:
+   swipe pad, tap button, drag area. Phones send the same `InputEvent`s v1 already uses, tagged with their seat.
+4. **End:** results for every seat, rematch, or back to the lobby. The room closes 10 minutes after the last person leaves.
+
+**Same-device mode (offline, no server):** 2–4 players share one tablet or laptop. The screen splits into touch zones,
+or each player gets a key set. This uses the same N-player logic with local input only, so it works in v1's no-backend world too.
+
+**How it fits the architecture**
+- Rooms live in the **realtime service** (§2). The room's state (members, seats, status) sits in Redis with a TTL, and
+  the match runs on the server using the game's `logic.ts`, so the server stays authoritative. The shared screen
+  receives state at a fixed tick and interpolates, and controllers send only inputs, so a phone never needs the game engine.
+- `rooms` / `room_members` in Postgres keep history and moderation records. Live state never touches Postgres.
+- **Contract change:** N-player games take `players: number` in `newGame` and accept `{ seat, event }` inputs. The
+  `GameEnv` gets `seats` and `localSeat`, and the existing single-player path is just `players = 1`.
+- **Limits:** max players per room is enforced on the server, with rate limits on creating and joining rooms, codes that
+  expire, and a host-only lock. Public rooms need the moderation tools from §3 first.
+
+**Games that fit (first pass, with player caps)**
+| Game | Shared-screen mode | Max |
+|---|---|---|
+| Coil | Arena: one snake per player, last one alive wins | 6 |
+| Rally, Puck | Paddles / mallets on 2 or 4 sides | 4 |
+| Four Up, Reversi | Turn-based seats, others watch | 2 + spectators |
+| Pairs, Word Hunt | Party turns or a race on the same board | 8 |
+| Fruit Slice, Bubble, Brickline | Co-op: shared lives, one cursor per player | 4 |
+| Flutter, runners, Drift | Race: everyone in their own lane on one track | 6 |
+Puzzles and Solitaire stay single-player, or offer "pass the phone" at most.
+
+**Open questions:** do rooms need accounts, or are guests with display names enough for private rooms? Should the
+shared screen use WebRTC from a host phone to save server cost for small private rooms (with the server only for
+signalling)? And how should a controller disconnecting mid-match work (the bot from §8 takes over the seat)?
